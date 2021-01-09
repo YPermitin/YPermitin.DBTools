@@ -17,15 +17,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YY.DBTools.SQLServer.XEvents", "Libs\YY.DBTools.SQLServer.XEvents\YY.DBTools.SQLServer.XEvents.csproj", "{43AB3C3E-A23D-468E-83AE-B17E49A25383}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YY.DBTools.SQLServer.XEvents", "Libs\YY.DBTools.SQLServer.XEvents\YY.DBTools.SQLServer.XEvents.csproj", "{43AB3C3E-A23D-468E-83AE-B17E49A25383}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YY.DBTools.SQLServer.XEvents.ToClickHouse", "Libs\YY.DBTools.SQLServer.XEvents.ToClickHouse\YY.DBTools.SQLServer.XEvents.ToClickHouse.csproj", "{9D3F8EDD-8225-45C8-B0AD-3925B59F2CDF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YY.DBTools.SQLServer.XEvents.ToClickHouse", "Libs\YY.DBTools.SQLServer.XEvents.ToClickHouse\YY.DBTools.SQLServer.XEvents.ToClickHouse.csproj", "{9D3F8EDD-8225-45C8-B0AD-3925B59F2CDF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YY.DBTools.SQLServer.XEvents.Tests", "Tests\YY.DBTools.SQLServer.XEvents.Tests\YY.DBTools.SQLServer.XEvents.Tests.csproj", "{7C0DD08F-F2E6-44E2-933D-E35DDA8C5A8B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YY.DBTools.SQLServer.XEvents.Tests", "Tests\YY.DBTools.SQLServer.XEvents.Tests\YY.DBTools.SQLServer.XEvents.Tests.csproj", "{7C0DD08F-F2E6-44E2-933D-E35DDA8C5A8B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YY.DBTools.Core.Tests", "Tests\YY.DBTools.Core.Tests\YY.DBTools.Core.Tests.csproj", "{FB8A0C39-780D-4C85-BF72-1CE6D88BA6AA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YY.DBTools.Core.Tests", "Tests\YY.DBTools.Core.Tests\YY.DBTools.Core.Tests.csproj", "{FB8A0C39-780D-4C85-BF72-1CE6D88BA6AA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YY.DBTools.SQLServer.XEvents.ToClickHouse.Tests", "Tests\YY.DBTools.SQLServer.XEvents.ToClickHouse.Tests\YY.DBTools.SQLServer.XEvents.ToClickHouse.Tests.csproj", "{F4F58CDF-E97D-45C2-94F1-1DFF6BC3E921}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YY.DBTools.SQLServer.XEvents.ToClickHouse.Tests", "Tests\YY.DBTools.SQLServer.XEvents.ToClickHouse.Tests\YY.DBTools.SQLServer.XEvents.ToClickHouse.Tests.csproj", "{F4F58CDF-E97D-45C2-94F1-1DFF6BC3E921}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YY.DBTools.SQLServer.ExtendedEventsToClickHouse", "Apps\YY.DBTools.SQLServer.ExtendedEventsToClickHouse\YY.DBTools.SQLServer.ExtendedEventsToClickHouse.csproj", "{8C7DD76C-8F81-422E-8327-B13FF18E12AE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -57,6 +59,10 @@ Global
 		{F4F58CDF-E97D-45C2-94F1-1DFF6BC3E921}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F4F58CDF-E97D-45C2-94F1-1DFF6BC3E921}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F4F58CDF-E97D-45C2-94F1-1DFF6BC3E921}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C7DD76C-8F81-422E-8327-B13FF18E12AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C7DD76C-8F81-422E-8327-B13FF18E12AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C7DD76C-8F81-422E-8327-B13FF18E12AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C7DD76C-8F81-422E-8327-B13FF18E12AE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -68,6 +74,7 @@ Global
 		{7C0DD08F-F2E6-44E2-933D-E35DDA8C5A8B} = {C673B5E5-1AFC-44FB-ADFE-AC35D9CE74A3}
 		{FB8A0C39-780D-4C85-BF72-1CE6D88BA6AA} = {C673B5E5-1AFC-44FB-ADFE-AC35D9CE74A3}
 		{F4F58CDF-E97D-45C2-94F1-1DFF6BC3E921} = {C673B5E5-1AFC-44FB-ADFE-AC35D9CE74A3}
+		{8C7DD76C-8F81-422E-8327-B13FF18E12AE} = {41AB67CD-88F9-4504-BFD7-CFF21B20A418}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E5E4A466-BD31-4B30-A483-9BA15C9A211A}

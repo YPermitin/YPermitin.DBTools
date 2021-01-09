@@ -354,3 +354,4 @@ MigrationBackup/
 
 # Config files
 **/launchSettings.json
+**/appsettings.json
