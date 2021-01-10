@@ -81,7 +81,7 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
                     i.ServerInstanceName ?? string.Empty,
                     i.ServerPrincipalName ?? string.Empty,
                     i.ServerPrincipalId ?? 0,
-                    i.CpuId ?? 0,
+                    i.CpuTime ?? 0,
                     i.Duration ?? 0,
                     i.PhysicalReads ?? 0,
                     i.LogicalReads ?? 0,
