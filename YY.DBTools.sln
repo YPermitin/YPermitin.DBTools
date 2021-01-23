@@ -13,6 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{C673B5E5
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8BF3FBB3-BA2A-4EB7-8335-09488E20CD5B}"
 	ProjectSection(SolutionItems) = preProject
+		.github\workflows\dotnet.yml = .github\workflows\dotnet.yml
 		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection
@@ -33,6 +34,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Nuget", "Nuget", "{070B6008
 	ProjectSection(SolutionItems) = preProject
 		Nuget\icon.ico = Nuget\icon.ico
 		Nuget\icon.png = Nuget\icon.png
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scripts", "Scripts", "{971D0E54-6E62-4E27-AB9E-84FF6B89D888}"
+	ProjectSection(SolutionItems) = preProject
+		Scripts\deploy.sh = Scripts\deploy.sh
 	EndProjectSection
 EndProject
 Global
@@ -82,6 +88,7 @@ Global
 		{F4F58CDF-E97D-45C2-94F1-1DFF6BC3E921} = {C673B5E5-1AFC-44FB-ADFE-AC35D9CE74A3}
 		{8C7DD76C-8F81-422E-8327-B13FF18E12AE} = {41AB67CD-88F9-4504-BFD7-CFF21B20A418}
 		{070B6008-4C4E-42DA-B2D9-607A06E975F5} = {8BF3FBB3-BA2A-4EB7-8335-09488E20CD5B}
+		{971D0E54-6E62-4E27-AB9E-84FF6B89D888} = {8BF3FBB3-BA2A-4EB7-8335-09488E20CD5B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E5E4A466-BD31-4B30-A483-9BA15C9A211A}
