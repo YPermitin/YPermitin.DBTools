@@ -1,13 +1,13 @@
 # Набор библиотек для работы с СУБД
 
-Набор небольших библиотек и приложений для упрощения работы с некоторыми СУБД в части задач разработки и администрирования.
+Набор небольших библиотек и приложений на .NET Core для упрощения работы с некоторыми СУБД в части задач разработки и администрирования.
 
 | Проект | Актуальная версия | Описание |
 | ----------- | ----------------- | -------- |
 | YY.DBTools.Core | - | Базовый пакет |
 | YY.DBTools.SQLServer.XEvents | - | Пакет для чтения файлов расширенных событий SQL Server |
 | YY.DBTools.SQLServer.XEvents.ToClickHouse | - | Пакет для экспорта расширенных событий SQL Server в базу ClickHouse |
-| YY.DBTools.SQLServer.ExtendedEventsToClickHouse | - | Консольное приложение для экспорта расширенных событий SQL Server в ClickHouse |
+| YY.DBTools.SQLServer.ExtendedEventsToClickHouse | [последний релиз](https://github.com/YPermitin/YY.DBTools/releases) | Консольное приложение для экспорта расширенных событий SQL Server в ClickHouse |
 
 Последние новости об этой и других разработках, а также выходе других материалов, **[смотрите в Telegram-канале](https://t.me/DevQuietPlace)**.
 
