@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <Version>1.0.0.1</Version>
     <Authors>Permitin Yuriy</Authors>
     <Product>SQL Server Extended Event's exporter library to ClickHouse</Product>
@@ -14,6 +14,7 @@
     <PackageTags>DBMS, SQLServer, XEvent, ExtendedEvents, ClickHouse</PackageTags>
     <Description>Library for exporting SQL Server XEvent logs to ClickHouse</Description>
     <PackageIcon>icon.png</PackageIcon>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
