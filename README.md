@@ -4,9 +4,9 @@
 
 | Проект | Актуальная версия | Описание |
 | ----------- | ----------------- | -------- |
-| YY.DBTools.Core | - | Базовый пакет |
-| YY.DBTools.SQLServer.XEvents | - | Пакет для чтения файлов расширенных событий SQL Server |
-| YY.DBTools.SQLServer.XEvents.ToClickHouse | - | Пакет для экспорта расширенных событий SQL Server в базу ClickHouse |
+| YY.DBTools.Core | [![NuGet version](https://badge.fury.io/nu/YY.DBTools.Core.svg)](https://badge.fury.io/nu/YY.DBTools.Core) | Базовый пакет |
+| YY.DBTools.SQLServer.XEvents | [![NuGet version](https://badge.fury.io/nu/YY.DBTools.SQLServer.XEvents.svg)](https://badge.fury.io/nu/YY.DBTools.SQLServer.XEvents) | Пакет для чтения файлов расширенных событий SQL Server |
+| YY.DBTools.SQLServer.XEvents.ToClickHouse | [![NuGet version](https://badge.fury.io/nu/YY.DBTools.SQLServer.XEvents.ToClickHouse.svg)](https://badge.fury.io/nu/YY.DBTools.SQLServer.XEvents.ToClickHouse) | Пакет для экспорта расширенных событий SQL Server в базу ClickHouse |
 | YY.DBTools.SQLServer.ExtendedEventsToClickHouse | [последний релиз](https://github.com/YPermitin/YY.DBTools/releases) | Консольное приложение для экспорта расширенных событий SQL Server в ClickHouse |
 
 Последние новости об этой и других разработках, а также выходе других материалов, **[смотрите в Telegram-канале](https://t.me/DevQuietPlace)**.
@@ -14,11 +14,7 @@
 ### Состояние сборки
 | Windows |  Linux |
 |:-------:|:------:|
-| - | - |
-
-### Code Climate
-
--
+| - | ![.NET](https://github.com/YPermitin/YY.DBTools/workflows/.NET/badge.svg) |
 
 ## Приложение экспорта расширенных событий SQL Server в ClickHouse
 
