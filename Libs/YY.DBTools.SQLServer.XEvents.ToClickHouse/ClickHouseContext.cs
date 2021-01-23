@@ -17,7 +17,6 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
         #region Private Members
 
         private ClickHouseConnection _connection;
-        private long logFileLastId = -1;
 
         #endregion
 

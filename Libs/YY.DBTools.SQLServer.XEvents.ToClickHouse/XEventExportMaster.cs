@@ -160,7 +160,6 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
         }
         private void ExtendedEventsReader_BeforeReadFile(ExtendedEventsReader sender, BeforeReadFileEventArgs args)
         {
-            // TODO: Отменить обработку файла, если он уже был обработан ранее
             var taskLogFileLoaded = _target.LogFileLoaded(args.FileName);
             taskLogFileLoaded.Wait();
             if (taskLogFileLoaded.Result)

@@ -27,7 +27,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YY.DBTools.Core.Tests", "Te
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YY.DBTools.SQLServer.XEvents.ToClickHouse.Tests", "Tests\YY.DBTools.SQLServer.XEvents.ToClickHouse.Tests\YY.DBTools.SQLServer.XEvents.ToClickHouse.Tests.csproj", "{F4F58CDF-E97D-45C2-94F1-1DFF6BC3E921}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YY.DBTools.SQLServer.ExtendedEventsToClickHouse", "Apps\YY.DBTools.SQLServer.ExtendedEventsToClickHouse\YY.DBTools.SQLServer.ExtendedEventsToClickHouse.csproj", "{8C7DD76C-8F81-422E-8327-B13FF18E12AE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YY.DBTools.SQLServer.ExtendedEventsToClickHouse", "Apps\YY.DBTools.SQLServer.ExtendedEventsToClickHouse\YY.DBTools.SQLServer.ExtendedEventsToClickHouse.csproj", "{8C7DD76C-8F81-422E-8327-B13FF18E12AE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Nuget", "Nuget", "{070B6008-4C4E-42DA-B2D9-607A06E975F5}"
+	ProjectSection(SolutionItems) = preProject
+		Nuget\icon.ico = Nuget\icon.ico
+		Nuget\icon.png = Nuget\icon.png
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -75,6 +81,7 @@ Global
 		{FB8A0C39-780D-4C85-BF72-1CE6D88BA6AA} = {C673B5E5-1AFC-44FB-ADFE-AC35D9CE74A3}
 		{F4F58CDF-E97D-45C2-94F1-1DFF6BC3E921} = {C673B5E5-1AFC-44FB-ADFE-AC35D9CE74A3}
 		{8C7DD76C-8F81-422E-8327-B13FF18E12AE} = {41AB67CD-88F9-4504-BFD7-CFF21B20A418}
+		{070B6008-4C4E-42DA-B2D9-607A06E975F5} = {8BF3FBB3-BA2A-4EB7-8335-09488E20CD5B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E5E4A466-BD31-4B30-A483-9BA15C9A211A}

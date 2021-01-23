@@ -1,49 +1,112 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
-using YY.DBTools.SQLServer.XEvents.ToClickHouse;
+using CommandLine;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace YY.DBTools.SQLServer.ExtendedEventsToClickHouse
 {
     class Program
     {
+        private static XEventsExportApplicationSettings _settings;
+        private static readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+
         static async Task Main(string[] args)
         {
-            IConfiguration Configuration = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                .Build();
-            string connectionString = Configuration.GetConnectionString("XEventsDatabase");
-
-            IConfigurationSection XEEventSection = Configuration.GetSection("XEvents");
-            int portion = XEEventSection.GetValue("Portion", 10000);
-            string SourcePath = XEEventSection.GetValue("SourcePath", string.Empty);
-
-            using (IXEventExportMaster export = new XEventExportMaster(BeforeExportData, AfterExportData, OnErrorExportData))
+            AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionTrapper;
+            
+            Parser.Default.ParseArguments<CommandLineOptions>(args)
+                .WithParsed(RunOptions)
+                .WithNotParsed(HandleParseError);
+            if (_settings == null)
             {
-                export.SetXEventsPath(SourcePath);
-                IXEventsOnTarget target = new ExtendedEventsOnClickHouse(connectionString, portion);
-                export.SetTarget(target);
-                await export.StartSendEventsToStorage(CancellationToken.None);
+                Console.WriteLine("Failed to initialize data export settings. Check the path to the config file.");
+                return;
             }
 
-            Console.WriteLine("Press any key for exit...");
-            Console.ReadKey();
+            if (_settings.AllowInteractiveActions)
+            {
+                Console.CancelKeyPress += (s, e) =>
+                {
+                    Console.WriteLine("Stopping data export ......");
+                    Console.WriteLine();
+
+                    _cancellationTokenSource.Cancel();
+                    e.Cancel = true;
+                };
+            }
+
+            var services = new ServiceCollection();
+            ConfigureServices(services);
+
+            using (ServiceProvider serviceProvider = services.BuildServiceProvider())
+            {
+                XEventToClickHouse app = serviceProvider.GetService<XEventToClickHouse>();
+                try
+                {
+                    await app.Run(_cancellationTokenSource.Token);
+                }
+                catch (TaskCanceledException ex)
+                {
+                    if (ex.CancellationToken.IsCancellationRequested)
+                    {
+                        Console.WriteLine("Operation canceled.");
+                        Console.WriteLine();
+                    }
+                    else
+                    {
+                        Console.WriteLine("Operation canceled due to timeout.");
+                        Console.WriteLine();
+                    }
+                }
+            }
         }
 
-        private static void OnErrorExportData(OnErrorExportDataEventArgs e)
+        private static void ConfigureServices(ServiceCollection services)
         {
-            Console.WriteLine(e.Exception.ToString());
-        }
+            services.AddTransient<XEventToClickHouse>()
+                .AddSingleton(x => _settings);
 
-        private static void AfterExportData(AfterExportDataEventArgs e)
-        {
-            Console.WriteLine(" (+)");
-        }
+            string logDirectoryPath = string.Format("{0}{1}{2}{3}{4:yyyyMMddHHmmss}-{5}{6}log.txt",
+                _settings.LogDirectoryPath,
+                Path.DirectorySeparatorChar,
+                _settings.StorageType,
+                Path.DirectorySeparatorChar, DateTime.Now,
+                Process.GetCurrentProcess().Id,
+                Path.DirectorySeparatorChar);
 
-        private static void BeforeExportData(BeforeExportDataEventArgs e)
+            var serilogLogger = new LoggerConfiguration()
+                .WriteTo.RollingFile(logDirectoryPath)
+                .CreateLogger();
+
+            services.AddLogging(builder =>
+            {
+                builder.SetMinimumLevel(LogLevel.Information);
+                builder.AddSerilog(logger: serilogLogger, dispose: true);
+            });
+        }
+        private static void UnhandledExceptionTrapper(object sender, UnhandledExceptionEventArgs e)
         {
-            Console.Write($"Выгружено: {e.Rows.Count}");
+            string errorMessage = e.ExceptionObject.ToString();
+            Console.WriteLine(errorMessage);
+            Environment.Exit(1);
+        }
+        private static void RunOptions(CommandLineOptions options)
+        {
+            string logDirectoryPath = string.IsNullOrEmpty(options.LogDirectoryPath) ? "XEventsExportLogs" : options.LogDirectoryPath;
+            _settings = XEventsExportApplicationSettings.CreateSettings(
+                options.ConfigFile, 
+                options.AllowInteractiveCommands,
+                logDirectoryPath);
+        }
+        private static void HandleParseError(IEnumerable<Error> errors)
+        {
+            _settings = XEventsExportApplicationSettings.CreateSettings(null, false, "XEventsExportLogs");
         }
     }
 }
