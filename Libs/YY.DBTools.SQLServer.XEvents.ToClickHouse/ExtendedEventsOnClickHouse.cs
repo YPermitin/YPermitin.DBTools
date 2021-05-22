@@ -41,7 +41,7 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
 
         public ExtendedEventsPosition GetLastPosition()
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public int GetPortionSize()
@@ -103,7 +103,7 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
             using (var context = new ClickHouseContext(_connectionString))
             {
                 if(await LogFileLoaded(logFileInfo.FullName))
-                    return;;
+                    return;
 
                 await context.SaveLogPosition(logFileInfo, position, finishReadFile);
                 if (_currentStepToClearLogFiles == 0 || _currentStepToClearLogFiles >= _stepsToClearLogFiles)

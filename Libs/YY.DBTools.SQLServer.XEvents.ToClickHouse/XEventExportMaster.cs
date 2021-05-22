@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,7 +7,7 @@ using YY.DBTools.SQLServer.XEvents.ToClickHouse.Models;
 
 namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
 {
-    public sealed class XEventExportMaster : IXEventExportMaster, IDisposable
+    public sealed class XEventExportMaster : IXEventExportMaster
     {
         #region Private Member Variables
 
@@ -80,7 +79,8 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
             if (_reader == null || _target == null || _eventPath == null)
                 await Task.CompletedTask;
 
-            await _reader.StartReadEvents(cancellationToken);
+            if (_reader != null) 
+                await _reader.StartReadEvents(cancellationToken);
         }
         public void Dispose()
         {
