@@ -1,28 +1,23 @@
-﻿using System.IO;
-using YY.DBTools.Core;
+﻿using Microsoft.Extensions.Configuration;
+using YY.DBTools.SQLServer.XEvents.ToClickHouse;
 
 namespace YY.DBTools.SQLServer.ExtendedEventsToClickHouse
 {
     public class XEventsExportApplicationSettings : XEventsExportSettings
     {
-        public static XEventsExportApplicationSettings CreateSettings(string configFile, bool AllowInteractiveActions, string LogDirectoryPath)
+        public static XEventsExportApplicationSettings CreateSettings(IConfiguration configuration, bool AllowInteractiveActions, string LogDirectoryPath)
         {
-            configFile ??= "appsettings.json";
-
-            FileInfo configFileInfo = new FileInfo(configFile);
-            return configFileInfo.Exists ? new XEventsExportApplicationSettings(configFile, AllowInteractiveActions, LogDirectoryPath) : null;
+            return new XEventsExportApplicationSettings(configuration, AllowInteractiveActions, LogDirectoryPath);
         }
 
-        private readonly bool _allowInteractiveActions;
-        private readonly string _logDirectoryPath;
+        public bool AllowInteractiveActions { get; }
 
-        public bool AllowInteractiveActions => _allowInteractiveActions;
-        public string LogDirectoryPath => _logDirectoryPath;
+        public string LogDirectoryPath { get; }
 
-        public XEventsExportApplicationSettings(string configFile, bool AllowInteractiveActions, string LogDirectoryPath) :base(configFile)
+        public XEventsExportApplicationSettings(IConfiguration configuration, bool AllowInteractiveActions, string LogDirectoryPath) : base(configuration)
         {
-            _allowInteractiveActions = AllowInteractiveActions;
-            _logDirectoryPath = LogDirectoryPath;
+            this.AllowInteractiveActions = AllowInteractiveActions;
+            this.LogDirectoryPath = LogDirectoryPath;
         }
     }
 }

@@ -7,11 +7,12 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
 {
     public interface IXEventsOnTarget
     {
-        ExtendedEventsPosition GetLastPosition();
-        Task SaveLogPosition(FileInfo logFileInfo, ExtendedEventsPosition position, bool finishReadFile);
+        Task<ExtendedEventsPosition> GetLastPosition(string fileName);
+        Task SaveLogPosition(ExtendedEventsPosition position);
         int GetPortionSize();
         Task Save(XEventData eventData);
-        Task Save(IList<XEventData> eventsData);
-        Task<bool> LogFileLoaded(string fileName);
+        Task Save(List<XEventData> eventsData);
+        void SetLogInformation(ExtendedEventsLogBase xEventsLog);
+        Task<bool> LogFileChanged(FileInfo logFileInfo);
     }
 }

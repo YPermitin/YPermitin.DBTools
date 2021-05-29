@@ -7,8 +7,10 @@ using System.Threading.Tasks;
 using ClickHouse.Client.ADO;
 using ClickHouse.Client.ADO.Parameters;
 using ClickHouse.Client.Copy;
+using YY.DBTools.Core.Helpers;
 using YY.DBTools.SQLServer.XEvents.ToClickHouse.Helpers;
 using YY.DBTools.SQLServer.XEvents.ToClickHouse.Models;
+using YY.DBTools.SQLServer.XEvents.ToClickHouse.SharedBuffer;
 
 namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
 {
@@ -24,7 +26,7 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
 
         public ClickHouseContext(string connectionSettings)
         {
-            CheckDatabaseSettings(connectionSettings);
+            ClickHouseHelpers.CreateDatabaseIfNotExist(connectionSettings);
 
             _connection = new ClickHouseConnection(connectionSettings);
             _connection.Open();
@@ -44,150 +46,240 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
 
         #region RowsData
 
-        public async Task SaveRowsData(List<XEventData> eventData)
+        public async Task SaveRowsData(ExtendedEventsLogBase xEventsLog,
+            List<XEventData> xEventsData)
         {
+            IDictionary<string, List<XEventData>> xEventsDataToInsert = xEventsData
+                .GroupBy(g => g.FileName)
+                .ToDictionary(k => k.Key, v => v.ToList());
+
+            await SaveRowsData(xEventsLog, xEventsDataToInsert);
+        }
+
+        public async Task SaveRowsData(ExtendedEventsLogBase xEventsLog,
+            IDictionary<string, List<XEventData>> xEventsData,
+            Dictionary<string, LastRowsInfoByLogFile> maxPeriodByFiles = null)
+        {
+            if (maxPeriodByFiles == null) maxPeriodByFiles = new Dictionary<string, LastRowsInfoByLogFile>();
+
+            List<object[]> rowsForInsert = new List<object[]>();
+            foreach (var eventInfo in xEventsData)
+            {
+                FileInfo logFileInfo = new FileInfo(eventInfo.Key);
+                foreach (var eventItem in eventInfo.Value)
+                {
+                    if (!maxPeriodByFiles.TryGetValue(logFileInfo.Name, out LastRowsInfoByLogFile lastInfo))
+                    {
+                        if (logFileInfo.Directory != null)
+                        {
+                            GetRowsDataMaxPeriodAndId(
+                                xEventsLog,
+                                logFileInfo.Name,
+                                eventItem.Timestamp.DateTime,
+                                out var maxPeriod,
+                                out var maxId
+                            );
+                            lastInfo = new LastRowsInfoByLogFile(maxPeriod, maxId);
+                            maxPeriodByFiles.Add(logFileInfo.Name, lastInfo);
+                        }
+                    }
+
+                    bool existByPeriod = lastInfo.MaxPeriod > ClickHouseHelpers.MinDateTimeValue &&
+                                         eventItem.Timestamp.DateTime.Truncate(TimeSpan.FromSeconds(1)) <= lastInfo.MaxPeriod;
+                    bool existById = lastInfo.MaxId > 0 &&
+                                     eventItem.Id <= lastInfo.MaxId;
+                    if (existByPeriod && existById)
+                        continue;
+
+                    if (logFileInfo.Directory != null)
+                        rowsForInsert.Add(new object[]
+                        {
+                            xEventsLog.Name,
+                            logFileInfo.Name,
+                            eventItem.EventNumber,
+                            eventItem.Timestamp.DateTime,
+                            eventItem.EventName,
+                            eventItem.UUID.ToString(),
+                            eventItem.Username ?? string.Empty,
+                            eventItem.UsernameNT ?? string.Empty,
+                            eventItem.UsernameSessionNT ?? string.Empty,
+                            eventItem.SessionId ?? 0,
+                            eventItem.PlanHandle ?? string.Empty,
+                            eventItem.IsSystem == null ? 0 : ((bool)eventItem.IsSystem ? 1 : 0),
+                            eventItem.ExecutionPlanGuid?.ToString() ?? string.Empty,
+                            eventItem.DatabaseName ?? string.Empty,
+                            eventItem.DatabaseId ?? 0,
+                            eventItem.NumaNodeId ?? 0,
+                            eventItem.CpuId ?? 0,
+                            eventItem.ProcessId ?? 0,
+                            eventItem.SQLText ?? string.Empty,
+                            eventItem.SQLTextHash ?? string.Empty,
+                            eventItem.ClientAppName ?? string.Empty,
+                            eventItem.ClientHostname ?? string.Empty,
+                            eventItem.ClientId ?? 0,
+                            eventItem.QueryHash ?? string.Empty,
+                            eventItem.ServerInstanceName ?? string.Empty,
+                            eventItem.ServerPrincipalName ?? string.Empty,
+                            eventItem.ServerPrincipalId ?? 0,
+                            eventItem.CpuTime ?? 0,
+                            eventItem.Duration ?? 0,
+                            eventItem.PhysicalReads ?? 0,
+                            eventItem.LogicalReads ?? 0,
+                            eventItem.Writes ?? 0,
+                            eventItem.RowCount ?? 0,
+                            eventItem.GetActionsAsJSON(),
+                            eventItem.GetFieldsAsJSON()
+                        });
+                }
+            }
+
+            if (rowsForInsert.Count == 0)
+                return;
+
             using (ClickHouseBulkCopy bulkCopyInterface = new ClickHouseBulkCopy(_connection)
             {
                 DestinationTableName = "XEventData",
-                BatchSize = 100000
+                BatchSize = 100000,
+                MaxDegreeOfParallelism = 4
             })
             {
-                var values = eventData.Select(i => new object[]
-                {
-                    i.FileName,
-                    i.EventNumber,
-                    i.Timestamp.DateTime,
-                    i.EventName,
-                    i.UUID.ToString(),
-                    i.Username ?? string.Empty,
-                    i.UsernameNT ?? string.Empty,
-                    i.UsernameSessionNT ?? string.Empty,
-                    i.SessionId ?? 0,
-                    i.PlanHandle ?? string.Empty,
-                    i.IsSystem == null ? 0 : ((bool)i.IsSystem ? 1 : 0),
-                    i.ExecutionPlanGuid?.ToString() ?? string.Empty,
-                    i.DatabaseName ?? string.Empty,
-                    i.DatabaseId ?? 0,
-                    i.NumaNodeId ?? 0,
-                    i.CpuId ?? 0,
-                    i.ProcessId ?? 0,
-                    i.SQLText ?? string.Empty,
-                    i.SQLTextHash ?? string.Empty,
-                    i.ClientAppName ?? string.Empty,
-                    i.ClientHostname ?? string.Empty,
-                    i.ClientId ?? 0,
-                    i.QueryHash ?? string.Empty,
-                    i.ServerInstanceName ?? string.Empty,
-                    i.ServerPrincipalName ?? string.Empty,
-                    i.ServerPrincipalId ?? 0,
-                    i.CpuTime ?? 0,
-                    i.Duration ?? 0,
-                    i.PhysicalReads ?? 0,
-                    i.LogicalReads ?? 0,
-                    i.Writes ?? 0,
-                    i.RowCount ?? 0,
-                    i.GetActionsAsJSON(),
-                    i.GetFieldsAsJSON()
-                }).AsEnumerable();
-
-                await bulkCopyInterface.WriteToServerAsync(values);
+                await bulkCopyInterface.WriteToServerAsync(rowsForInsert);
+                rowsForInsert.Clear();
             }
         }
-        public async Task SaveLogPosition(FileInfo logFileInfo, ExtendedEventsPosition position, bool finishReadFile = false)
-        {
-            var commandAddLogInfo = _connection.CreateCommand();
-            commandAddLogInfo.CommandText =
-                @"INSERT INTO LogFiles (
-                    CreateDate,
-                    FileName,
-                    FileCreateDate,
-                    FileModificationDate,
-                    LastEventNumber,
-                    LastEventUUID,
-                    LastEventPeriod,
-                    FinishReadFile
-                ) VALUES (
-                    {CreateDate:DateTime},
-                    {FileName:String},
-                    {FileCreateDate:DateTime},
-                    {FileModificationDate:DateTime},
-                    {LastEventNumber:Int64},
-                    {LastEventUUID:String},
-                    {LastEventPeriod:DateTime},
-                    {FinishReadFile:Int64}
-                )";
 
-            commandAddLogInfo.Parameters.Add(new ClickHouseDbParameter
-            {
-                ParameterName = "CreateDate",
-                DbType = DbType.DateTime,
-                Value = DateTime.Now
-            });
-            commandAddLogInfo.Parameters.Add(new ClickHouseDbParameter
-            {
-                ParameterName = "FileName",
-                DbType = DbType.AnsiString,
-                Value = logFileInfo.Name
-            });
-            commandAddLogInfo.Parameters.Add(new ClickHouseDbParameter
-            {
-                ParameterName = "FileCreateDate",
-                DbType = DbType.DateTime,
-                Value = logFileInfo.CreationTime.GetAllowDateTime()
-            });
-            commandAddLogInfo.Parameters.Add(new ClickHouseDbParameter
-            {
-                ParameterName = "FileModificationDate",
-                DbType = DbType.DateTime,
-                Value = logFileInfo.LastWriteTime.GetAllowDateTime()
-            });
-            commandAddLogInfo.Parameters.Add(new ClickHouseDbParameter
-            {
-                ParameterName = "LastEventNumber",
-                DbType = DbType.Int64,
-                Value = position.EventNumber
-            });
-            commandAddLogInfo.Parameters.Add(new ClickHouseDbParameter
-            {
-                ParameterName = "LastEventUUID",
-                DbType = DbType.AnsiString,
-                Value = position.EventUUID
-            });
-            commandAddLogInfo.Parameters.Add(new ClickHouseDbParameter
-            {
-                ParameterName = "LastEventPeriod",
-                DbType = DbType.DateTime,
-                Value = position.EventPeriod?.DateTime.GetAllowDateTime() ?? DateTime.MinValue.GetAllowDateTime()
-            });
-            commandAddLogInfo.Parameters.Add(new ClickHouseDbParameter
-            {
-                ParameterName = "FinishReadFile",
-                DbType = DbType.Int64,
-                Value = finishReadFile ? 1 : 0
-            });
-
-            await commandAddLogInfo.ExecuteNonQueryAsync();
-        }
-        public async Task RemoveArchiveLogFileRecords(string FileName)
+        public async Task SaveRowsData(Dictionary<LogBufferItemKey, LogBufferItem> sourceDataFromBuffer)
         {
-            var commandRemoveArchiveLogInfo = _connection.CreateCommand();
-            commandRemoveArchiveLogInfo.CommandText =
-                @"ALTER TABLE LogFiles DELETE
-                WHERE FileName = {FileName:String}
-                    AND CreateDate < (
-                    SELECT MAX(CreateDate) AS LastCreateDate
-                    FROM LogFiles lf
-                    WHERE FileName = {FileName:String}
-                )";
-            commandRemoveArchiveLogInfo.Parameters.Add(new ClickHouseDbParameter
+            List<object[]> rowsForInsert = new List<object[]>();
+            List<object[]> positionsForInsert = new List<object[]>();
+            Dictionary<string, LastRowsInfoByLogFile> maxPeriodByDirectories = new Dictionary<string, LastRowsInfoByLogFile>();
+
+            var dataFromBuffer = sourceDataFromBuffer
+                .OrderBy(i => i.Key.Period)
+                .ThenBy(i => i.Value.LogPosition.EventNumber)
+                .ToList();
+
+            long itemNumber = 0;
+            foreach (var dataItem in dataFromBuffer)
             {
-                ParameterName = "FileName",
-                DbType = DbType.AnsiString,
-                Value = FileName
-            });
-            await commandRemoveArchiveLogInfo.ExecuteNonQueryAsync();
+                itemNumber++;
+                FileInfo logFileInfo = new FileInfo(dataItem.Key.LogFile);
+
+                DateTime eventPeriod;
+                if (dataItem.Value.LogPosition.EventPeriod != null)
+                    eventPeriod = dataItem.Value.LogPosition.EventPeriod.Value.DateTime;
+                else
+                    eventPeriod = DateTime.MinValue;
+
+                positionsForInsert.Add(new object[]
+                {
+                    dataItem.Key.Settings.XEventsLog.Name,
+                    DateTime.Now.Ticks + itemNumber,
+                    logFileInfo.Name,
+                    DateTime.Now,
+                    logFileInfo.CreationTimeUtc,
+                    logFileInfo.LastWriteTimeUtc,
+                    dataItem.Value.LogPosition.EventNumber,
+                    dataItem.Value.LogPosition.EventUUID,
+                    eventPeriod,
+                    dataItem.Value.LogPosition.FinishReadFile
+                });
+
+                foreach (var rowData in dataItem.Value.LogRows)
+                {
+                    if (!maxPeriodByDirectories.TryGetValue(logFileInfo.FullName, out LastRowsInfoByLogFile lastInfo))
+                    {
+                        if (logFileInfo.Directory != null)
+                        {
+                            GetRowsDataMaxPeriodAndId(
+                                dataItem.Key.Settings.XEventsLog,
+                                logFileInfo.Name,
+                                rowData.Value.Timestamp.DateTime,
+                                out var maxPeriod,
+                                out var maxId
+                            );
+                            lastInfo = new LastRowsInfoByLogFile(maxPeriod, maxId);
+                            maxPeriodByDirectories.Add(logFileInfo.FullName, lastInfo);
+                        }
+                    }
+
+                    bool existByPeriod = lastInfo.MaxPeriod > ClickHouseHelpers.MinDateTimeValue &&
+                                         rowData.Value.Timestamp.DateTime.Truncate(TimeSpan.FromSeconds(1)) <= lastInfo.MaxPeriod;
+                    bool existById = lastInfo.MaxId > 0 &&
+                                     rowData.Value.Id <= lastInfo.MaxId;
+                    if (existByPeriod && existById)
+                        continue;
+
+                    var eventItem = rowData.Value;
+                    rowsForInsert.Add(new object[]
+                        {
+                            dataItem.Key.Settings.XEventsLog.Name,
+                            logFileInfo.Name,
+                            eventItem.EventNumber,
+                            eventItem.Timestamp.DateTime,
+                            eventItem.EventName,
+                            eventItem.UUID.ToString(),
+                            eventItem.Username ?? string.Empty,
+                            eventItem.UsernameNT ?? string.Empty,
+                            eventItem.UsernameSessionNT ?? string.Empty,
+                            eventItem.SessionId ?? 0,
+                            eventItem.PlanHandle ?? string.Empty,
+                            eventItem.IsSystem == null ? 0 : ((bool)eventItem.IsSystem ? 1 : 0),
+                            eventItem.ExecutionPlanGuid?.ToString() ?? string.Empty,
+                            eventItem.DatabaseName ?? string.Empty,
+                            eventItem.DatabaseId ?? 0,
+                            eventItem.NumaNodeId ?? 0,
+                            eventItem.CpuId ?? 0,
+                            eventItem.ProcessId ?? 0,
+                            eventItem.SQLText ?? string.Empty,
+                            eventItem.SQLTextHash ?? string.Empty,
+                            eventItem.ClientAppName ?? string.Empty,
+                            eventItem.ClientHostname ?? string.Empty,
+                            eventItem.ClientId ?? 0,
+                            eventItem.QueryHash ?? string.Empty,
+                            eventItem.ServerInstanceName ?? string.Empty,
+                            eventItem.ServerPrincipalName ?? string.Empty,
+                            eventItem.ServerPrincipalId ?? 0,
+                            eventItem.CpuTime ?? 0,
+                            eventItem.Duration ?? 0,
+                            eventItem.PhysicalReads ?? 0,
+                            eventItem.LogicalReads ?? 0,
+                            eventItem.Writes ?? 0,
+                            eventItem.RowCount ?? 0,
+                            eventItem.GetActionsAsJSON(),
+                            eventItem.GetFieldsAsJSON()
+                        });
+                }
+            }
+
+            if (rowsForInsert.Count > 0)
+            {
+                using (ClickHouseBulkCopy bulkCopyInterface = new ClickHouseBulkCopy(_connection)
+                {
+                    DestinationTableName = "XEventData",
+                    BatchSize = 100000,
+                    MaxDegreeOfParallelism = 4
+                })
+                {
+                    await bulkCopyInterface.WriteToServerAsync(rowsForInsert);
+                    rowsForInsert.Clear();
+                }
+            }
+
+            if (positionsForInsert.Count > 0)
+            {
+                using (ClickHouseBulkCopy bulkCopyInterface = new ClickHouseBulkCopy(_connection)
+                {
+                    DestinationTableName = "LogFiles",
+                    BatchSize = 100000
+                })
+                {
+                    await bulkCopyInterface.WriteToServerAsync(positionsForInsert);
+                }
+            }
         }
-        public async Task<DateTime> GetRowsDataMaxPeriod(string FileName)
+  
+        public async Task<DateTime> GetRowsDataMaxPeriod(ExtendedEventsLogBase xEventsLog, string FileName)
         {
             DateTime output = DateTime.MinValue;
 
@@ -197,7 +289,13 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
                     @"SELECT
                         MAX(Period) AS MaxPeriod
                     FROM XEventData AS RD
-                    WHERE FileName = {FileName:String} ";
+                    WHERE ExtendedEventsLog = {ExtendedEventsLog:String}
+                        AND FileName = {FileName:String} ";
+                command.Parameters.Add(new ClickHouseDbParameter
+                {
+                    ParameterName = "ExtendedEventsLog",
+                    Value = xEventsLog.Name
+                });
                 command.Parameters.Add(new ClickHouseDbParameter
                 {
                     ParameterName = "FileName",
@@ -212,92 +310,124 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
 
             return output;
         }
-        public async Task<bool> RowDataExistOnDatabase(string FileName, XEventData eventData)
+
+        #endregion
+
+        #region LogFiles
+
+        public async Task<ExtendedEventsPosition> GetLogFilePosition(ExtendedEventsLogBase xEventsLog, string fileName)
         {
-            bool output = false;
+            var cmdGetLastLogFileInfo = _connection.CreateCommand();
+            cmdGetLastLogFileInfo.CommandText =
+                @"SELECT	                
+                    FileName,
+	                LastEventNumber,
+	                LastEventUUID,
+	                LastEventPeriod,
+                    FinishReadFile,
+                    FileCreateDate,
+                    FileModificationDate
+                FROM LogFiles AS LF
+                WHERE ExtendedEventsLog = {ExtendedEventsLog:String}
+                    AND FileName = {FileName:String}
+                    AND Id IN (
+                        SELECT
+                            MAX(Id) LastId
+                        FROM LogFiles AS LF_LAST
+                        WHERE LF_LAST.ExtendedEventsLog = {ExtendedEventsLog:String}
+                            AND LF_LAST.FileName = {FileName:String}
+                    )";
+            cmdGetLastLogFileInfo.AddParameterToCommand("ExtendedEventsLog", DbType.AnsiString, xEventsLog.Name);
+            cmdGetLastLogFileInfo.AddParameterToCommand("FileName", DbType.AnsiString, fileName);
 
-            using (var command = _connection.CreateCommand())
+            ExtendedEventsPosition output = null;
+            await using (var cmdReader = await cmdGetLastLogFileInfo.ExecuteReaderAsync())
             {
-                command.CommandText =
-                    @"SELECT
-                        FileName
-                    FROM XEventData AS XD
-                    WHERE FileName = {FileName:String}
-                        AND Period = {Period:DateTime}
-                        AND EventNumber = {EventNumber:Int64}
-                        AND EventName = {EventName:String}
-                        AND UUID = {UUID:String}";
-                command.Parameters.Add(new ClickHouseDbParameter
+                if (await cmdReader.ReadAsync())
                 {
-                    ParameterName = "FileName",
-                    DbType = DbType.AnsiString,
-                    Value = FileName
-                });
-                command.Parameters.Add(new ClickHouseDbParameter
-                {
-                    ParameterName = "Period",
-                    DbType = DbType.DateTime,
-                    Value = eventData.Timestamp.DateTime
-                });
-                command.Parameters.Add(new ClickHouseDbParameter
-                {
-                    ParameterName = "EventName",
-                    DbType = DbType.AnsiString,
-                    Value = eventData.EventName
-                });
-                command.Parameters.Add(new ClickHouseDbParameter
-                {
-                    ParameterName = "UUID",
-                    DbType = DbType.AnsiString,
-                    Value = eventData.UUID.ToString()
-                });
-                command.Parameters.Add(new ClickHouseDbParameter
-                {
-                    ParameterName = "EventNumber",
-                    DbType = DbType.Int64,
-                    Value = eventData.EventNumber
-                });
-
-                using (var cmdReader = await command.ExecuteReaderAsync())
-                {
-                    if (await cmdReader.ReadAsync())
-                        output = true;
+                    bool finishReadFile = cmdReader.GetBoolean(4);
+                    output = new ExtendedEventsPosition(
+                        cmdReader.GetInt64(1),
+                        cmdReader.GetString(0),
+                        cmdReader.GetString(2),
+                        cmdReader.GetDateTime(3),
+                        finishReadFile,
+                        cmdReader.GetDateTime(5),
+                        cmdReader.GetDateTime(6));
                 }
             }
 
             return output;
         }
-        public async Task<bool> LogFileLoaded(string FileName)
+
+        public async Task SaveLogPosition(ExtendedEventsLogBase xEventsLog, ExtendedEventsPosition position)
         {
-            bool output = false;
-            FileInfo logFileInfo = new FileInfo(FileName);
-
-            using (var command = _connection.CreateCommand())
+            await SaveLogPositions(xEventsLog, new List<ExtendedEventsPosition>()
             {
-                command.CommandText =
-                    @"SELECT
-                        FileName
-                    FROM LogFiles AS LF
-                    WHERE FileName = {FileName:String}
-                        AND FinishReadFile = 1
-                        AND FileModificationDate = {FileModificationDate:DateTime}";
-                command.Parameters.Add(new ClickHouseDbParameter
-                {
-                    ParameterName = "FileName",
-                    DbType = DbType.AnsiString,
-                    Value = logFileInfo.Name
-                });
-                command.Parameters.Add(new ClickHouseDbParameter
-                {
-                    ParameterName = "FileModificationDate",
-                    DbType = DbType.DateTime,
-                    Value = logFileInfo.LastWriteTime
-                });
+                position
+            });
+        }
 
-                using (var cmdReader = await command.ExecuteReaderAsync())
+        public async Task SaveLogPositions(ExtendedEventsLogBase xEventsLog, List<ExtendedEventsPosition> positions)
+        {
+            List<object[]> positionsForInsert = new List<object[]>();
+
+            foreach (var positionItem in positions)
+            {
+                FileInfo logFileInfo = new FileInfo(positionItem.CurrentFileData);
+                long itemNumber = positions.IndexOf(positionItem) + 1;
+
+                positionsForInsert.Add(new object[]
                 {
-                    if (await cmdReader.ReadAsync())
-                        output = true;
+                    xEventsLog.Name,
+                    DateTime.Now.Ticks + itemNumber,
+                    logFileInfo.Name,
+                    DateTime.Now,
+                    logFileInfo.CreationTimeUtc,
+                    logFileInfo.LastWriteTimeUtc,
+                    positionItem.EventNumber,
+                    positionItem.EventUUID,
+                    positionItem.EventPeriod,
+                    positionItem.CurrentFileData.Replace("\\", "\\\\"),
+                });
+            }
+
+            if (positionsForInsert.Count > 0)
+            {
+                using (ClickHouseBulkCopy bulkCopyInterface = new ClickHouseBulkCopy(_connection)
+                {
+                    DestinationTableName = "LogFiles",
+                    BatchSize = 100000
+                })
+                {
+                    await bulkCopyInterface.WriteToServerAsync(positionsForInsert);
+                }
+            }
+        }
+
+        public IDictionary<string, ExtendedEventsPosition> GetCurrentLogPositions(
+            ExtendedEventsLogBase xEventsLog)
+        {
+            var cmdGetLastLogFileInfo = _connection.CreateCommand();
+            cmdGetLastLogFileInfo.CommandText = Resources.Query_GetActualPositions;
+            cmdGetLastLogFileInfo.AddParameterToCommand("ExtendedEventsLog", DbType.AnsiString, xEventsLog.Name);
+
+            IDictionary<string, ExtendedEventsPosition> output = new Dictionary<string, ExtendedEventsPosition>();
+            using (var cmdReader = cmdGetLastLogFileInfo.ExecuteReader())
+            {
+                while (cmdReader.Read())
+                {
+                    string fileName = cmdReader.GetString(2).Replace("\\\\", "\\");
+                    bool finishReadFile = cmdReader.GetBoolean(9);
+                    output.Add(fileName, new ExtendedEventsPosition(
+                        cmdReader.GetInt64(6),
+                        fileName,
+                        cmdReader.GetString(7),
+                        cmdReader.GetDateTime(8),
+                        finishReadFile,
+                        cmdReader.GetDateTime(10),
+                        cmdReader.GetDateTime(11)
+                    ));
                 }
             }
 
@@ -320,11 +450,53 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
 
         #endregion
 
-        #region Private Methods
+        #region Service
 
-        private void CheckDatabaseSettings(string connectionSettings)
+        private void GetRowsDataMaxPeriodAndId(
+            ExtendedEventsLogBase xEventsLog,
+            string fileName, DateTime fromPeriod,
+            out DateTime maxPeriod, out long maxId)
         {
-            ClickHouseHelpers.CreateDatabaseIfNotExist(connectionSettings);
+            DateTime outputMaxPeriod = DateTime.MinValue;
+            long outputMaxId = 0;
+
+            using (var command = _connection.CreateCommand())
+            {
+                command.CommandText =
+                    @"SELECT
+                        MAX(Period) AS MaxPeriod,
+                        MAX(EventNumber) AS MaxId
+                    FROM XEventData AS RD
+                    WHERE ExtendedEventsLog = {xEventLog:String}
+                        AND FileName = {fileName:String}
+                        AND Period >= {fromPeriod:DateTime}";
+                command.AddParameterToCommand("xEventLog", xEventsLog.Name);
+                command.AddParameterToCommand("fileName", fileName);
+                command.AddParameterToCommand("fromPeriod", fromPeriod);
+                using (var cmdReader = command.ExecuteReader())
+                {
+                    if (cmdReader.Read())
+                    {
+                        outputMaxPeriod = cmdReader.GetDateTime(0);
+                        outputMaxId = cmdReader.GetInt64(1);
+                    }
+                }
+            }
+
+            maxPeriod = outputMaxPeriod;
+            maxId = outputMaxId;
+        }
+
+        public readonly struct LastRowsInfoByLogFile
+        {
+            public LastRowsInfoByLogFile(DateTime maxPeriod, long maxId)
+            {
+                MaxPeriod = maxPeriod;
+                MaxId = maxId;
+            }
+
+            public DateTime MaxPeriod { get; }
+            public long MaxId { get; }
         }
 
         #endregion

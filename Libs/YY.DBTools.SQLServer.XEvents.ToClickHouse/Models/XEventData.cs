@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
-using Microsoft.SqlServer.XEvent.XELite;
 using Newtonsoft.Json;
 using YY.DBTools.SQLServer.XEvents.ToClickHouse.Helpers;
 
@@ -44,24 +43,28 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse.Models
             "row_count"
         };
 
-        private readonly long _eventNumber;
-        private readonly string _fileName;
-        private readonly IXEvent _eventData;
+        private readonly ExtendedEvent _eventData;
 
-        public XEventData(string fileName, long eventNumber, IXEvent EventData)
+        public XEventData(string fileName, long eventNumber, ExtendedEvent EventData)
         {
-            _fileName = fileName;
-            _eventNumber = eventNumber;
+            FileName = fileName;
+            EventNumber = eventNumber;
             _eventData = EventData;
         }
 
         #region Common
 
+        public long Id => _eventData.Id;
+
         public DateTimeOffset Timestamp => _eventData.Timestamp;
+
         public string EventName => _eventData.Name;
+
         public Guid UUID => _eventData.UUID;
-        public string FileName => _fileName;
-        public long EventNumber => _eventNumber;
+
+        public string FileName { get; }
+
+        public long EventNumber { get; }
 
         #endregion
 

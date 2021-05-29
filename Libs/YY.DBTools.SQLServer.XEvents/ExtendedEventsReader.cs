@@ -17,7 +17,7 @@ namespace YY.DBTools.SQLServer.XEvents
         private long _currentFileEventNumber;
         private readonly bool _logFileSourcePathIsDirectory;
 
-        private IXEvent _currentRow;
+        private ExtendedEvent _currentRow;
         private ExtendedEventsPosition _position;
 
         #region Constructors
@@ -74,7 +74,7 @@ namespace YY.DBTools.SQLServer.XEvents
                 return _logFilesWithData[_indexCurrentFile];
             }
         }
-        public IXEvent CurrentRow => _currentRow;
+        public ExtendedEvent CurrentRow => _currentRow;
         public long CurrentFileEventNumber => _currentFileEventNumber;
 
         #endregion
@@ -103,6 +103,9 @@ namespace YY.DBTools.SQLServer.XEvents
                 _position = null;
                 _currentRow = null;
                 _currentFileEventNumber = 1;
+                var currentLogFile = _logFilesWithData[_indexCurrentFile];
+                FileInfo currentLogFileInfo = new FileInfo(currentLogFile);
+
                 try
                 {
                     XEFileEventStreamer xeReader = new XEFileEventStreamer(_stream);
@@ -112,7 +115,10 @@ namespace YY.DBTools.SQLServer.XEvents
                                 _currentFileEventNumber,
                                 CurrentFile,
                                 null,
-                                null);
+                                null,
+                                false,
+                                currentLogFileInfo.CreationTimeUtc,
+                                currentLogFileInfo.LastWriteTimeUtc);
                             RaiseOnReadMetadata(new OnReadMetadataArgs(_position));
                             return Task.CompletedTask;
                         },
@@ -122,15 +128,31 @@ namespace YY.DBTools.SQLServer.XEvents
                                 _currentFileEventNumber,
                                 CurrentFile,
                                 eventData.UUID.ToString(),
-                                eventData.Timestamp);
+                                eventData.Timestamp,
+                                false,
+                                currentLogFileInfo.CreationTimeUtc,
+                                currentLogFileInfo.LastWriteTimeUtc);
 
-                            _currentRow = eventData;
+                            _currentRow = new ExtendedEvent(_currentFileEventNumber, eventData);
                             RaiseOnRead(new OnReadEventArgs(_currentRow, _position, _currentFileEventNumber));
                             _currentFileEventNumber++;
 
                             return Task.CompletedTask;
                         }, cancellationToken);
-                    
+
+                    _currentRow = null;
+                    if(_position != null)
+                        _position = new ExtendedEventsPosition(
+                            _position.EventNumber,
+                            _position.CurrentFileData,
+                            _position.EventUUID,
+                            _position.EventPeriod,
+                            true,
+                            currentLogFileInfo.CreationTimeUtc,
+                            currentLogFileInfo.LastWriteTimeUtc
+                            );
+                    RaiseOnRead(new OnReadEventArgs(_currentRow, _position, _currentFileEventNumber));
+
                     NextFile();
                 }
                 catch (Exception ex)

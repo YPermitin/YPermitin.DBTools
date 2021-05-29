@@ -5,6 +5,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using CommandLine;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Serilog;
@@ -13,13 +14,14 @@ namespace YY.DBTools.SQLServer.ExtendedEventsToClickHouse
 {
     class Program
     {
+        public static IConfiguration Configuration;
         private static XEventsExportApplicationSettings _settings;
         private static readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
         static async Task Main(string[] args)
         {
             AppDomain.CurrentDomain.UnhandledException += UnhandledExceptionTrapper;
-            
+
             Parser.Default.ParseArguments<CommandLineOptions>(args)
                 .WithParsed(RunOptions)
                 .WithNotParsed(HandleParseError);
@@ -99,8 +101,14 @@ namespace YY.DBTools.SQLServer.ExtendedEventsToClickHouse
         private static void RunOptions(CommandLineOptions options)
         {
             string logDirectoryPath = string.IsNullOrEmpty(options.LogDirectoryPath) ? "XEventsExportLogs" : options.LogDirectoryPath;
+            string configFile = options.ConfigFile ?? "appsettings.json";
+
+            Configuration = new ConfigurationBuilder()
+                .AddJsonFile(configFile, false, false)
+                .Build();
+
             _settings = XEventsExportApplicationSettings.CreateSettings(
-                options.ConfigFile, 
+                Configuration,
                 options.AllowInteractiveCommands,
                 logDirectoryPath);
         }

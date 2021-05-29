@@ -103,14 +103,10 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
             {
                 await _target.Save(_dataToSend);
                 RiseAfterExportData(reader.GetCurrentPosition());
-            }
-
-            if (reader.CurrentFile != null)
-            {
-                await _target.SaveLogPosition(
-                    new FileInfo(reader.CurrentFile),
-                    reader.GetCurrentPosition(),
-                    false);
+                if (reader.CurrentFile != null)
+                {
+                    await _target.SaveLogPosition(reader.GetCurrentPosition());
+                }
             }
             _dataToSend.Clear();
         }
@@ -160,20 +156,21 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
         }
         private void ExtendedEventsReader_BeforeReadFile(ExtendedEventsReader sender, BeforeReadFileEventArgs args)
         {
-            var taskLogFileLoaded = _target.LogFileLoaded(args.FileName);
-            taskLogFileLoaded.Wait();
-            if (taskLogFileLoaded.Result)
+            FileInfo logFileInfo = new FileInfo(args.FileName);
+            var logFileChangedTask = _target.LogFileChanged(logFileInfo);
+            logFileChangedTask.Wait();
+            if (!logFileChangedTask.Result)
+            {
                 args.Cancel = true;
+            }
         }
         private void ExtendedEventsReader_AfterReadFile(ExtendedEventsReader sender, AfterReadFileEventArgs args)
         {
-            FileInfo _lastEventLogDataFileInfo = new FileInfo(args.FileName);
-
             if (_dataToSend.Count > 0)
                 SendDataCurrentPortion(sender).Wait();
 
             ExtendedEventsPosition position = sender.GetCurrentPosition();
-            _target.SaveLogPosition(_lastEventLogDataFileInfo, position, true);
+            _target.SaveLogPosition(position);
         }
         private void ExtendedEventsReader_OnErrorEvent(ExtendedEventsReader sender, OnErrorEventArgs args)
         {

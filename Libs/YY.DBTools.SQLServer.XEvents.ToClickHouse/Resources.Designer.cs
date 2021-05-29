@@ -63,20 +63,16 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse {
         /// <summary>
         ///   Ищет локализованную строку, похожую на CREATE TABLE IF NOT EXISTS LogFiles
         ///(
-        ///    CreateDate DateTime Codec(Delta, LZ4),
+        ///	ExtendedEventsLog LowCardinality(String),
+        ///	Id Int64 DEFAULT (toUnixTimestamp64Milli(now64())*1000000 + rowNumberInAllBlocks()) Codec(DoubleDelta, LZ4),
         ///	FileName LowCardinality(String),
+        ///	CreateDate DateTime Codec(Delta, LZ4),	
         ///	FileCreateDate DateTime Codec(Delta, LZ4),
         ///	FileModificationDate DateTime Codec(Delta, LZ4),
         ///	LastEventNumber Int64 Codec(DoubleDelta, LZ4),
         ///	LastEventUUID LowCardinality(String),
-        ///	LastEventPeriod DateTime Codec(Delta, LZ4),
-        ///    FinishReadFile Int64 Codec(DoubleDelta, LZ4)
-        ///)
-        ///engine = MergeTree()
-        ///PARTITION BY toYYYYMM(CreateDate)
-        ///PRIMARY KEY CreateDate
-        ///ORDER BY CreateDate
-        ///SETTING [остаток строки не уместился]&quot;;.
+        ///	LastEventPeriod DateTime Codec(Delta, LZ4),	
+        ///	FinishR [остаток строки не уместился]&quot;;.
         /// </summary>
         internal static string Query_CreateTable_LogFiles {
             get {
@@ -87,6 +83,7 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse {
         /// <summary>
         ///   Ищет локализованную строку, похожую на CREATE TABLE IF NOT EXISTS XEventData
         ///(
+        ///    ExtendedEventsLog LowCardinality(String),
         ///    FileName LowCardinality(String),
         ///    EventNumber Int64 Codec(DoubleDelta, LZ4),
         ///    Period DateTime Codec(Delta, LZ4),
@@ -97,12 +94,46 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse {
         ///    UsernameSessionNT LowCardinality(String),
         ///    SessionId Int64 Codec(DoubleDelta, LZ4),
         ///    PlanHandle String Codec(ZSTD),
-        ///    IsSystem Int8 Codec(DoubleDelta, LZ4),
-        ///    ExecutionPlanGuid St [остаток строки не уместился]&quot;;.
+        ///    IsSystem Int8 Cod [остаток строки не уместился]&quot;;.
         /// </summary>
         internal static string Query_CreateTable_XEventData {
             get {
                 return ResourceManager.GetString("Query_CreateTable_XEventData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Ищет локализованную строку, похожую на SELECT 
+        ///    l.ExtendedEventsLog, 
+        ///    l.Id, 
+        ///    l.FileName, 
+        ///    l.CreateDate, 
+        ///    l.FileCreateDate, 
+        ///    l.FileModificationDate, 
+        ///    l.LastEventNumber, 
+        ///    l.LastEventUUID, 
+        ///    l.LastEventPeriod,
+        ///    l.FinishReadFile,
+        ///    l.FileCreateDate,
+        ///    l.FileModificationDate
+        ///FROM LogFiles l
+        ///
+        ///INNER JOIN
+        ///
+        ///(
+        ///SELECT
+        ///	ExtendedEventsLog,
+        ///	FileName,
+        ///    MAX(Id) LastId
+        ///FROM LogFiles AS LF_LAST
+        ///WHERE LF_LAST.ExtendedEventsLog = {ExtendedEventsLog:String}
+        ///GROUP BY ExtendedEventsLog,
+        ///	FileName
+        ///) [остаток строки не уместился]&quot;;.
+        /// </summary>
+        internal static string Query_GetActualPositions {
+            get {
+                return ResourceManager.GetString("Query_GetActualPositions", resourceCulture);
             }
         }
     }

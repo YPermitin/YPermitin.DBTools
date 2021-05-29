@@ -120,24 +120,28 @@
   <data name="Query_CreateTable_LogFiles" xml:space="preserve">
     <value>CREATE TABLE IF NOT EXISTS LogFiles
 (
-    CreateDate DateTime Codec(Delta, LZ4),
+	ExtendedEventsLog LowCardinality(String),
+	Id Int64 DEFAULT (toUnixTimestamp64Milli(now64())*1000000 + rowNumberInAllBlocks()) Codec(DoubleDelta, LZ4),
 	FileName LowCardinality(String),
+	CreateDate DateTime Codec(Delta, LZ4),	
 	FileCreateDate DateTime Codec(Delta, LZ4),
 	FileModificationDate DateTime Codec(Delta, LZ4),
 	LastEventNumber Int64 Codec(DoubleDelta, LZ4),
 	LastEventUUID LowCardinality(String),
-	LastEventPeriod DateTime Codec(Delta, LZ4),
-    FinishReadFile Int64 Codec(DoubleDelta, LZ4)
+	LastEventPeriod DateTime Codec(Delta, LZ4),	
+	FinishReadFile Int64 Codec(DoubleDelta, LZ4)
 )
 engine = MergeTree()
 PARTITION BY toYYYYMM(CreateDate)
 PRIMARY KEY CreateDate
 ORDER BY CreateDate
 SETTINGS index_granularity = 8192;</value>
+    <comment>Создание таблицы для хранения данных лога обработки файлов</comment>
   </data>
   <data name="Query_CreateTable_XEventData" xml:space="preserve">
     <value>CREATE TABLE IF NOT EXISTS XEventData
 (
+    ExtendedEventsLog LowCardinality(String),
     FileName LowCardinality(String),
     EventNumber Int64 Codec(DoubleDelta, LZ4),
     Period DateTime Codec(Delta, LZ4),
@@ -178,5 +182,41 @@ PARTITION BY toYYYYMM(Period)
 PRIMARY KEY Period
 ORDER BY Period
 SETTINGS index_granularity = 8192;</value>
+    <comment>Создание таблицы для хранения данных расширенных событий</comment>
+  </data>
+  <data name="Query_GetActualPositions" xml:space="preserve">
+    <value>SELECT 
+    l.ExtendedEventsLog, 
+    l.Id, 
+    l.FileName, 
+    l.CreateDate, 
+    l.FileCreateDate, 
+    l.FileModificationDate, 
+    l.LastEventNumber, 
+    l.LastEventUUID, 
+    l.LastEventPeriod,
+    l.FinishReadFile,
+    l.FileCreateDate,
+    l.FileModificationDate
+FROM LogFiles l
+
+INNER JOIN
+
+(
+SELECT
+	ExtendedEventsLog,
+	FileName,
+    MAX(Id) LastId
+FROM LogFiles AS LF_LAST
+WHERE LF_LAST.ExtendedEventsLog = {ExtendedEventsLog:String}
+GROUP BY ExtendedEventsLog,
+	FileName
+) lglast
+
+ON l.ExtendedEventsLog = lglast.ExtendedEventsLog 
+	AND l.FileName = lglast.FileName 
+	AND l.Id = lglast.LastId
+ORDER BY l.FileName</value>
+    <comment>Получение последних событий</comment>
   </data>
 </root>
