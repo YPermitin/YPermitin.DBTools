@@ -87,14 +87,14 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse {
         ///    FileName LowCardinality(String),
         ///    EventNumber Int64 Codec(DoubleDelta, LZ4),
         ///    Period DateTime Codec(Delta, LZ4),
+        ///    PeriodLocal DateTime Codec(Delta, LZ4),
         ///    EventName LowCardinality(String),
         ///    UUID String Codec(ZSTD),
         ///    Username LowCardinality(String),
         ///    UsernameNT LowCardinality(String),
         ///    UsernameSessionNT LowCardinality(String),
         ///    SessionId Int64 Codec(DoubleDelta, LZ4),
-        ///    PlanHandle String Codec(ZSTD),
-        ///    IsSystem Int8 Cod [остаток строки не уместился]&quot;;.
+        ///    PlanHand [остаток строки не уместился]&quot;;.
         /// </summary>
         internal static string Query_CreateTable_XEventData {
             get {

@@ -25,7 +25,6 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
         public WatchModeSettings WatchMode { get; }
         public ExportSettings Export { get; }
         public IReadOnlyList<LogSourceSettings> LogSources { get; }
-        public object LockObject { get; }
 
         public XEventsExportSettings(IConfiguration configuration)
         {
@@ -71,8 +70,6 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
                     timeZone));
             }
             LogSources = logSourceSettings;
-
-            LockObject = new object();
         }
 
         public class WatchModeSettings

@@ -249,6 +249,12 @@ namespace YY.DBTools.SQLServer.XEvents
                     return false;
                 }
 
+                string currentFile = _logFilesWithData[_indexCurrentFile];
+                if (!File.Exists(currentFile))
+                {
+                    return false;
+                }
+
                 InitializeStream(_indexCurrentFile);
                 _currentFileEventNumber = 0;
             }

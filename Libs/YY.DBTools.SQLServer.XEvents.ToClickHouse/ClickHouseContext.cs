@@ -46,8 +46,7 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
 
         #region RowsData
 
-        public async Task SaveRowsData(ExtendedEventsLogBase xEventsLog,
-            List<XEventData> xEventsData)
+        public async Task SaveRowsData(ExtendedEventsLogBase xEventsLog, List<XEventData> xEventsData)
         {
             IDictionary<string, List<XEventData>> xEventsDataToInsert = xEventsData
                 .GroupBy(g => g.FileName)
@@ -68,6 +67,10 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
                 FileInfo logFileInfo = new FileInfo(eventInfo.Key);
                 foreach (var eventItem in eventInfo.Value)
                 {
+                    DateTime periodServer = eventItem.Timestamp.DateTime;
+                    DateTime periodUtc = TimeZoneInfo.ConvertTimeToUtc(periodServer, TimeZoneInfo.Local);
+                    DateTime periodLocal = periodServer;
+
                     if (!maxPeriodByFiles.TryGetValue(logFileInfo.Name, out LastRowsInfoByLogFile lastInfo))
                     {
                         if (logFileInfo.Directory != null)
@@ -75,7 +78,7 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
                             GetRowsDataMaxPeriodAndId(
                                 xEventsLog,
                                 logFileInfo.Name,
-                                eventItem.Timestamp.DateTime,
+                                periodUtc,
                                 out var maxPeriod,
                                 out var maxId
                             );
@@ -85,7 +88,7 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
                     }
 
                     bool existByPeriod = lastInfo.MaxPeriod > ClickHouseHelpers.MinDateTimeValue &&
-                                         eventItem.Timestamp.DateTime.Truncate(TimeSpan.FromSeconds(1)) <= lastInfo.MaxPeriod;
+                                         periodUtc.Truncate(TimeSpan.FromSeconds(1)) <= lastInfo.MaxPeriod;
                     bool existById = lastInfo.MaxId > 0 &&
                                      eventItem.Id <= lastInfo.MaxId;
                     if (existByPeriod && existById)
@@ -97,7 +100,8 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
                             xEventsLog.Name,
                             logFileInfo.Name,
                             eventItem.EventNumber,
-                            eventItem.Timestamp.DateTime,
+                            periodUtc,
+                            periodLocal,
                             eventItem.EventName,
                             eventItem.UUID.ToString(),
                             eventItem.Username ?? string.Empty,
@@ -164,29 +168,37 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
             {
                 itemNumber++;
                 FileInfo logFileInfo = new FileInfo(dataItem.Key.LogFile);
+                var timeZone = dataItem.Key.Settings.TimeZone;
 
-                DateTime eventPeriod;
+                DateTime eventPeriodUtc;
                 if (dataItem.Value.LogPosition.EventPeriod != null)
-                    eventPeriod = dataItem.Value.LogPosition.EventPeriod.Value.DateTime;
+                {
+                    DateTime eventPeriodServer = dataItem.Value.LogPosition.EventPeriod.Value.DateTime;
+                    eventPeriodUtc = TimeZoneInfo.ConvertTimeToUtc(eventPeriodServer, TimeZoneInfo.Local);
+                }
                 else
-                    eventPeriod = DateTime.MinValue;
+                    eventPeriodUtc = DateTime.MinValue;
 
                 positionsForInsert.Add(new object[]
                 {
                     dataItem.Key.Settings.XEventsLog.Name,
-                    DateTime.Now.Ticks + itemNumber,
+                    DateTime.UtcNow.Ticks + itemNumber,
                     logFileInfo.Name,
-                    DateTime.Now,
+                    DateTime.UtcNow,
                     logFileInfo.CreationTimeUtc,
                     logFileInfo.LastWriteTimeUtc,
                     dataItem.Value.LogPosition.EventNumber,
                     dataItem.Value.LogPosition.EventUUID,
-                    eventPeriod,
+                    eventPeriodUtc,
                     dataItem.Value.LogPosition.FinishReadFile
                 });
 
                 foreach (var rowData in dataItem.Value.LogRows)
                 {
+                    DateTime periodServer = rowData.Value.Timestamp.DateTime;
+                    DateTime periodUtc = TimeZoneInfo.ConvertTimeToUtc(periodServer, TimeZoneInfo.Local);
+                    DateTime periodLocal = TimeZoneInfo.ConvertTimeFromUtc(periodUtc, timeZone);
+
                     if (!maxPeriodByDirectories.TryGetValue(logFileInfo.FullName, out LastRowsInfoByLogFile lastInfo))
                     {
                         if (logFileInfo.Directory != null)
@@ -194,7 +206,7 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
                             GetRowsDataMaxPeriodAndId(
                                 dataItem.Key.Settings.XEventsLog,
                                 logFileInfo.Name,
-                                rowData.Value.Timestamp.DateTime,
+                                periodUtc,
                                 out var maxPeriod,
                                 out var maxId
                             );
@@ -204,7 +216,7 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
                     }
 
                     bool existByPeriod = lastInfo.MaxPeriod > ClickHouseHelpers.MinDateTimeValue &&
-                                         rowData.Value.Timestamp.DateTime.Truncate(TimeSpan.FromSeconds(1)) <= lastInfo.MaxPeriod;
+                                         periodUtc.Truncate(TimeSpan.FromSeconds(1)) <= lastInfo.MaxPeriod;
                     bool existById = lastInfo.MaxId > 0 &&
                                      rowData.Value.Id <= lastInfo.MaxId;
                     if (existByPeriod && existById)
@@ -216,7 +228,8 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
                             dataItem.Key.Settings.XEventsLog.Name,
                             logFileInfo.Name,
                             eventItem.EventNumber,
-                            eventItem.Timestamp.DateTime,
+                            periodUtc,
+                            periodLocal,
                             eventItem.EventName,
                             eventItem.UUID.ToString(),
                             eventItem.Username ?? string.Empty,
@@ -380,9 +393,9 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
                 positionsForInsert.Add(new object[]
                 {
                     xEventsLog.Name,
-                    DateTime.Now.Ticks + itemNumber,
+                    DateTime.UtcNow.Ticks + itemNumber,
                     logFileInfo.Name,
-                    DateTime.Now,
+                    DateTime.UtcNow,
                     logFileInfo.CreationTimeUtc,
                     logFileInfo.LastWriteTimeUtc,
                     positionItem.EventNumber,

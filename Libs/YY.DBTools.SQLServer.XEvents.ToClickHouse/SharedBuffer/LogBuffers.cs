@@ -66,7 +66,7 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse.SharedBuffer
                 }, rowData);
             }
 
-            LogBuffer.TryAdd(new LogBufferItemKey(logSettings, DateTime.Now, logFileInfo.FullName), 
+            LogBuffer.TryAdd(new LogBufferItemKey(logSettings, DateTime.UtcNow, logFileInfo.FullName), 
                 newBufferItem);
 
             LogPositions.AddOrUpdate(logSettings,

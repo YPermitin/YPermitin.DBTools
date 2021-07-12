@@ -78,7 +78,7 @@ namespace YY.DBTools.SQLServer.ExtendedEventsToClickHouse
                 _settings.LogDirectoryPath,
                 Path.DirectorySeparatorChar,
                 _settings.StorageType,
-                Path.DirectorySeparatorChar, DateTime.Now,
+                Path.DirectorySeparatorChar, DateTime.UtcNow,
                 Process.GetCurrentProcess().Id,
                 Path.DirectorySeparatorChar);
 

@@ -145,6 +145,7 @@ SETTINGS index_granularity = 8192;</value>
     FileName LowCardinality(String),
     EventNumber Int64 Codec(DoubleDelta, LZ4),
     Period DateTime Codec(Delta, LZ4),
+    PeriodLocal DateTime Codec(Delta, LZ4),
     EventName LowCardinality(String),
     UUID String Codec(ZSTD),
     Username LowCardinality(String),

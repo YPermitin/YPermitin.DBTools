@@ -137,7 +137,7 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse.SharedBuffer
 
         private async Task SendLogFromBuffer(CancellationToken cancellationToken)
         {
-            DateTime lastExportDate = DateTime.Now;
+            DateTime lastExportDate = DateTime.UtcNow;
             while (true)
             {
                 if (cancellationToken.IsCancellationRequested)
@@ -150,7 +150,7 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse.SharedBuffer
                 }
                 else
                 {
-                    var createTimeLeftMs = (DateTime.Now - lastExportDate).TotalMilliseconds;
+                    var createTimeLeftMs = (DateTime.UtcNow - lastExportDate).TotalMilliseconds;
                     if (lastExportDate != DateTime.MinValue && createTimeLeftMs >= _settings.Export.Buffer.MaxSaveDurationMs)
                     {
                         needExport = true;
@@ -187,7 +187,7 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse.SharedBuffer
                         {
                             _logBuffers.LogBuffer.TryRemove(itemToUpload, out _);
                         }
-                        lastExportDate = DateTime.Now;
+                        lastExportDate = DateTime.UtcNow;
                     }
                     catch (Exception e)
                     {
@@ -217,8 +217,6 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse.SharedBuffer
 
         protected void OnSend(BeforeExportDataEventArgs args)
         {
-            //OnSendLogEvent?.Invoke(args);
-
             bool bufferBlocked = (_logBuffers.TotalItemsCount >= _settings.Export.Buffer.MaxBufferSizeItemsCount);
             while (bufferBlocked)
             {
