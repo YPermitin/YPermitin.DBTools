@@ -40,7 +40,8 @@ namespace YY.DBTools.SQLServer.ExtendedEventsToClickHouse
 
         private static void OnErrorExportData(OnErrorExportSharedBufferEventArgs e)
         {
-            Console.WriteLine(e.Exception.ToString());
+            Console.WriteLine($"Log name: {e?.Exception?.Settings?.Name ?? "Unknown"}\n" +
+                              $"Error info: {e.Exception.ToString()}");
         }
 
         private void OnExportData(BeforeExportDataEventArgs e)

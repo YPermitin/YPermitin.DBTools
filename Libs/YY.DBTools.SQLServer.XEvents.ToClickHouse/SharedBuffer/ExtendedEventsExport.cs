@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using YY.DBTools.SQLServer.XEvents.ToClickHouse.SharedBuffer.EventArgs;
+using YY.DBTools.SQLServer.XEvents.ToClickHouse.SharedBuffer.Exceptions;
 
 namespace YY.DBTools.SQLServer.XEvents.ToClickHouse.SharedBuffer
 {
@@ -129,7 +130,8 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse.SharedBuffer
                 }
                 catch (Exception e)
                 {
-                    RaiseOnError(new OnErrorExportSharedBufferEventArgs(e));
+                    RaiseOnError(new OnErrorExportSharedBufferEventArgs(
+                        new ExportSharedBufferException("Log export job failed.", e, settings)));
                     await Task.Delay(60000, cancellationToken);
                 }
             }
@@ -191,7 +193,8 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse.SharedBuffer
                     }
                     catch (Exception e)
                     {
-                        RaiseOnError(new OnErrorExportSharedBufferEventArgs(e));
+                        RaiseOnError(new OnErrorExportSharedBufferEventArgs(
+                            new ExportSharedBufferException("Send log from buffer failed.", e, null)));
                         await Task.Delay(60000, cancellationToken);
                     }
                 }
@@ -236,7 +239,8 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse.SharedBuffer
         }
         private void OnErrorExportDataToBuffer(OnErrorExportDataEventArgs e)
         {
-            RaiseOnError(new OnErrorExportSharedBufferEventArgs(e.Exception));
+            RaiseOnError(new OnErrorExportSharedBufferEventArgs(
+                new ExportSharedBufferException("Export data to buffer failed.", e.Exception, null)));
         }
 
         #endregion

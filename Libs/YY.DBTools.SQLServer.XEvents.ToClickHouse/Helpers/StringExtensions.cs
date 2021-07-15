@@ -32,7 +32,7 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse.Helpers
                 sourceQuery = _replaceSQLParametersForDELETE.Replace(sourceQuery, "DELETE");
             }
 
-            return sourceQuery;
+            return sourceQuery.Trim();
         }
         public static string GetQueryHash(this string sourceQuery, bool isQueryFromDBMS = false)
         {
@@ -41,9 +41,11 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse.Helpers
             else
                 sourceQuery = sourceQuery.ClearSQLQuery(true, false, false);
 
-            sourceQuery = sourceQuery.Replace(" ", "");
-            sourceQuery = sourceQuery.Replace("\r", "");
-            sourceQuery = sourceQuery.Replace("\n", "");
+            sourceQuery = sourceQuery.Replace(" ", string.Empty);
+            sourceQuery = sourceQuery.Replace("\r", string.Empty);
+            sourceQuery = sourceQuery.Replace("\n", string.Empty);
+            sourceQuery = sourceQuery.Replace("\0", string.Empty);
+
             return sourceQuery.CreateMD5();
         }
         public static string CreateMD5(this string input)
