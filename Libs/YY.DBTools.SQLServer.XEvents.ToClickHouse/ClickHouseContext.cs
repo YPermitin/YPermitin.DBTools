@@ -67,7 +67,7 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
                 FileInfo logFileInfo = new FileInfo(eventInfo.Key);
                 foreach (var eventItem in eventInfo.Value)
                 {
-                    DateTime periodServer = eventItem.Timestamp.DateTime;
+                    DateTime periodServer = eventItem.Timestamp.LocalDateTime;
                     DateTime periodUtc = TimeZoneInfo.ConvertTimeToUtc(periodServer, TimeZoneInfo.Local);
                     DateTime periodLocal = periodServer;
 
@@ -168,13 +168,13 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
             {
                 itemNumber++;
                 FileInfo logFileInfo = new FileInfo(dataItem.Key.LogFile);
-                var timeZone = dataItem.Key.Settings.TimeZone;
 
                 DateTime eventPeriodUtc;
                 if (dataItem.Value.LogPosition.EventPeriod != null)
                 {
-                    DateTime eventPeriodServer = dataItem.Value.LogPosition.EventPeriod.Value.DateTime;
-                    eventPeriodUtc = TimeZoneInfo.ConvertTimeToUtc(eventPeriodServer, TimeZoneInfo.Local);
+                    DateTime periodServer = dataItem.Value.LogPosition.EventPeriod.Value.LocalDateTime;
+                    DateTime periodLocal = TimeZoneInfo.ConvertTime(periodServer, TimeZoneInfo.Local, dataItem.Key.Settings.TimeZone);
+                    eventPeriodUtc = TimeZoneInfo.ConvertTimeToUtc(periodLocal, dataItem.Key.Settings.TimeZone);
                 }
                 else
                     eventPeriodUtc = DateTime.MinValue;
@@ -195,9 +195,9 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse
 
                 foreach (var rowData in dataItem.Value.LogRows)
                 {
-                    DateTime periodServer = rowData.Value.Timestamp.DateTime;
-                    DateTime periodUtc = TimeZoneInfo.ConvertTimeToUtc(periodServer, TimeZoneInfo.Local);
-                    DateTime periodLocal = TimeZoneInfo.ConvertTimeFromUtc(periodUtc, timeZone);
+                    DateTime periodServer = rowData.Value.Timestamp.LocalDateTime;
+                    DateTime periodLocal = TimeZoneInfo.ConvertTime(periodServer, TimeZoneInfo.Local, dataItem.Key.Settings.TimeZone);
+                    DateTime periodUtc = TimeZoneInfo.ConvertTimeToUtc(periodLocal, dataItem.Key.Settings.TimeZone);
 
                     if (!maxPeriodByDirectories.TryGetValue(logFileInfo.FullName, out LastRowsInfoByLogFile lastInfo))
                     {
