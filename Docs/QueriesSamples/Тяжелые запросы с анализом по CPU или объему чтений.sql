@@ -38,9 +38,9 @@ FROM
 			SUM(RowCount) AS "RowCountTotal",
 			COUNT(*) AS "CountTotal"
 		from XEventData
-		WHERE FileName LIKE '%Reads%' -- Фильтр по именам файла (можно и по имени лога)
+		WHERE FileName LIKE '%Reads%' -- Р¤РёР»СЊС‚СЂ РїРѕ РёРјРµРЅР°Рј С„Р°Р№Р»Р° (РјРѕР¶РЅРѕ Рё РїРѕ РёРјРµРЅРё Р»РѕРіР°)
 	) ttl	
-	WHERE FileName LIKE '%Reads%' -- Фильтр по именам файла (можно и по имени лога)
+	WHERE FileName LIKE '%Reads%' -- Р¤РёР»СЊС‚СЂ РїРѕ РёРјРµРЅР°Рј С„Р°Р№Р»Р° (РјРѕР¶РЅРѕ Рё РїРѕ РёРјРµРЅРё Р»РѕРіР°)
 	GROUP BY SQLText, SQLTextHash
 	) dt
 ORDER BY "LogicalReadsMB" DESC
