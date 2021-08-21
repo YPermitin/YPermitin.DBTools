@@ -146,16 +146,21 @@ namespace YY.DBTools.SQLServer.XEvents.ToClickHouse.SharedBuffer
                     break;
 
                 bool needExport = false;
-                if (_logBuffers.TotalItemsCount >= _settings.Export.Buffer.MaxItemCountSize)
+                long itemsCountForExport = _logBuffers.TotalItemsCount;
+                if (itemsCountForExport > 0)
                 {
-                    needExport = true;
-                }
-                else
-                {
-                    var createTimeLeftMs = (DateTime.UtcNow - lastExportDate).TotalMilliseconds;
-                    if (lastExportDate != DateTime.MinValue && createTimeLeftMs >= _settings.Export.Buffer.MaxSaveDurationMs)
+                    if (itemsCountForExport >= _settings.Export.Buffer.MaxItemCountSize)
                     {
                         needExport = true;
+                    }
+                    else
+                    {
+                        var createTimeLeftMs = (DateTime.UtcNow - lastExportDate).TotalMilliseconds;
+                        if (lastExportDate != DateTime.MinValue &&
+                            createTimeLeftMs >= _settings.Export.Buffer.MaxSaveDurationMs)
+                        {
+                            needExport = true;
+                        }
                     }
                 }
 
