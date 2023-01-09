@@ -1,13 +1,13 @@
 # Набор библиотек для работы с различными СУБД
 
-Набор небольших библиотек и приложений на .NET Core для упрощения работы с некоторыми СУБД в части задач разработки и администрирования.
+Набор небольших библиотек и приложений на .NET для упрощения работы с некоторыми СУБД в части задач разработки и администрирования.
 
-| Проект | Актуальная версия | Описание |
-| ----------- | ----------------- | -------- |
-| YY.DBTools.Core | [![NuGet version](https://badge.fury.io/nu/YY.DBTools.Core.svg)](https://badge.fury.io/nu/YY.DBTools.Core) | Базовый пакет |
-| YY.DBTools.SQLServer.XEvents | [![NuGet version](https://badge.fury.io/nu/YY.DBTools.SQLServer.XEvents.svg)](https://badge.fury.io/nu/YY.DBTools.SQLServer.XEvents) | Пакет для чтения файлов расширенных событий SQL Server |
-| YY.DBTools.SQLServer.XEvents.ToClickHouse | [![NuGet version](https://badge.fury.io/nu/YY.DBTools.SQLServer.XEvents.ToClickHouse.svg)](https://badge.fury.io/nu/YY.DBTools.SQLServer.XEvents.ToClickHouse) | Пакет для экспорта расширенных событий SQL Server в базу ClickHouse |
-| YY.DBTools.SQLServer.ExtendedEventsToClickHouse | [последний релиз](https://github.com/YPermitin/YY.DBTools/releases) | Консольное приложение для экспорта расширенных событий SQL Server в ClickHouse |
+| Проект                                          | Актуальная версия                                                   | Описание |
+|-------------------------------------------------|---------------------------------------------------------------------| -------- |
+| YPermitin.DBTools.Core                          | -                                                                   | Базовый пакет |
+| YPermitin.DBTools.SQLServer.XEvents                    | -                                                                   | Пакет для чтения файлов расширенных событий SQL Server |
+| YPermitin.DBTools.SQLServer.XEvents.ToClickHouse       | -                                                                   | Пакет для экспорта расширенных событий SQL Server в базу ClickHouse |
+| YPermitin.DBTools.SQLServer.ExtendedEventsToClickHouse | [последний релиз](https://github.com/YPermitin/YY.DBTools/releases) | Консольное приложение для экспорта расширенных событий SQL Server в ClickHouse |
 
 Общими задачами проекта являются:
 
@@ -20,9 +20,9 @@
 
 ## Состояние сборки
 
-| Windows |  Linux |
-|:-------:|:------:|
-| - | ![.NET](https://github.com/YPermitin/YY.DBTools/workflows/.NET/badge.svg) |
+| Windows | Linux |
+|:-------:|:-----:|
+| - |   -   |
 
 ## TODO
 
