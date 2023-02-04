@@ -8,6 +8,7 @@
 | YPermitin.DBTools.SQLServer.XEvents                    | -                                                                   | Пакет для чтения файлов расширенных событий SQL Server |
 | YPermitin.DBTools.SQLServer.XEvents.ToClickHouse       | -                                                                   | Пакет для экспорта расширенных событий SQL Server в базу ClickHouse |
 | YPermitin.DBTools.SQLServer.ExtendedEventsToClickHouse | [последний релиз](https://github.com/YPermitin/YY.DBTools/releases) | Консольное приложение для экспорта расширенных событий SQL Server в ClickHouse |
+| [YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper](Libs/YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper/README.md) | - | Библиотека-оболочка для работы с утилитой Bulk Copy Program (BCP) |
 
 Общими задачами проекта являются:
 

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30804.86
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YPermitin.DBTools.Core", "Libs\YPermitin.DBTools.Core\YPermitin.DBTools.Core.csproj", "{CAF44CC3-9FA8-4C5B-B656-1D5C42EEB182}"
 EndProject
@@ -52,6 +52,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "QueriesSamples", "QueriesSa
 		Docs\QueriesSamples\Тяжелые запросы с анализом по CPU или объему чтений.sql = Docs\QueriesSamples\Тяжелые запросы с анализом по CPU или объему чтений.sql
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper", "Libs\YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper\YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper.csproj", "{BB203ACD-27F3-444A-90C2-AC68531EDDD6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper.Tests", "Tests\YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper.Tests\YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper.Tests.csproj", "{1FEF52F2-5F94-49CE-BE00-119BEBA02006}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -86,6 +90,14 @@ Global
 		{8C7DD76C-8F81-422E-8327-B13FF18E12AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8C7DD76C-8F81-422E-8327-B13FF18E12AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8C7DD76C-8F81-422E-8327-B13FF18E12AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB203ACD-27F3-444A-90C2-AC68531EDDD6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB203ACD-27F3-444A-90C2-AC68531EDDD6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB203ACD-27F3-444A-90C2-AC68531EDDD6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB203ACD-27F3-444A-90C2-AC68531EDDD6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1FEF52F2-5F94-49CE-BE00-119BEBA02006}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1FEF52F2-5F94-49CE-BE00-119BEBA02006}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1FEF52F2-5F94-49CE-BE00-119BEBA02006}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1FEF52F2-5F94-49CE-BE00-119BEBA02006}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -102,6 +114,8 @@ Global
 		{971D0E54-6E62-4E27-AB9E-84FF6B89D888} = {8BF3FBB3-BA2A-4EB7-8335-09488E20CD5B}
 		{7404C7CE-5368-4058-8D7E-F2CC9BCFA779} = {8BF3FBB3-BA2A-4EB7-8335-09488E20CD5B}
 		{1248D739-3F9A-4D20-BFDD-495E07F4E38F} = {7404C7CE-5368-4058-8D7E-F2CC9BCFA779}
+		{BB203ACD-27F3-444A-90C2-AC68531EDDD6} = {E79FBDED-0EA0-4935-ADCB-9116800E2956}
+		{1FEF52F2-5F94-49CE-BE00-119BEBA02006} = {C673B5E5-1AFC-44FB-ADFE-AC35D9CE74A3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E5E4A466-BD31-4B30-A483-9BA15C9A211A}
