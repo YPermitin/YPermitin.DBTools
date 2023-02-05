@@ -21,7 +21,7 @@ namespace YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper.Helpers
         /// Время ожидания завершения потока вывода на консоль или завершения работы процесса.
         /// По завершению ожидания проверяется завершился ли процесс и ожидание возобновляется.
         ///
-        /// При указании значения меньше 5 мс, оно будет проигнорировано и все равно будет установлено ожидание в 5 мс.
+        /// При указании значения меньше 5000 мс, оно будет проигнорировано и все равно будет установлено ожидание в 5000 мс.
         /// </summary>
         public static int ConsoleOutputWaitTimeoutMs = 15000;
 
@@ -86,7 +86,7 @@ namespace YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper.Helpers
                             }
                         };
 
-                        int currentConsoleOutputWaitTimeoutMs = ConsoleOutputWaitTimeoutMs < 5 ? 5 : ConsoleOutputWaitTimeoutMs;
+                        int currentConsoleOutputWaitTimeoutMs = ConsoleOutputWaitTimeoutMs < 5000 ? 5000 : ConsoleOutputWaitTimeoutMs;
                         DateTime lastActivityTime = DateTime.UtcNow;
 
                         process.Start();
