@@ -24,14 +24,14 @@
         ///
         /// Примечание: будет пустым, если задан параметр вывода всех сообщений в файл (параметр "AdditionalSettings:OutputFile")
         /// </summary>
-        public string Message { get; set; }
+        public string? Message { get; set; }
 
         /// <summary>
         /// Сообщение об ошибке по результатам запуска.
         ///
         /// Примечание: будет пустым, если задан параметр вывода всех сообщений в файл (параметр "AdditionalSettings:OutputFile")
         /// </summary>
-        public string ErrorMessage { get; set; }
+        public string? ErrorMessage { get; set; }
 
         /// <summary>
         /// Код возарата утилиты BCP.

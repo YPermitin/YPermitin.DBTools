@@ -11,7 +11,7 @@ namespace YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper.Tests
 
         public ImportExportTests()
         {
-            
+            BCP.TerminateStuckBulkCopyProcesses();
         }
 
         [Fact]
@@ -114,11 +114,11 @@ namespace YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper.Tests
 
             #endregion
 
-            Assert.Equal(0, bcpExport.LastExecutionResult.ExitCode);
-            Assert.Equal(string.Empty, bcpExport.LastExecutionResult.ErrorMessage);
+            Assert.Equal(0, bcpExport.LastExecutionResult?.ExitCode);
+            Assert.Equal(string.Empty, bcpExport.LastExecutionResult?.ErrorMessage);
             Assert.False(errorOccurredOnExport);
-            Assert.Equal(0, bcpImport.LastExecutionResult.ExitCode);
-            Assert.Equal(string.Empty, bcpImport.LastExecutionResult.ErrorMessage);
+            Assert.Equal(0, bcpImport.LastExecutionResult?.ExitCode);
+            Assert.Equal(string.Empty, bcpImport.LastExecutionResult?.ErrorMessage);
             Assert.False(errorOccurredOnImport);
         }
     }
