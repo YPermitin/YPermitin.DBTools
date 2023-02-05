@@ -108,7 +108,8 @@ namespace YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper
                 out string output,
                 out string errorOutput,
                 out int exitCode,
-                false);
+                false,
+                Config.AdditionalSettings.OutputFile);
 
             LastExecutionResult = new ExecutionResult()
             {
