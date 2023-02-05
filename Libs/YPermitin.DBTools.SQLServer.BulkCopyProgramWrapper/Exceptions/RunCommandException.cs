@@ -15,14 +15,14 @@ namespace YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper.Exceptions
         /// <summary>
         /// Консольный вывод приложения в части ошибок
         /// </summary>
-        public string ErrorOutput { get; }
+        public string? ErrorOutput { get; }
 
         /// <summary>
         /// Консольный вывод приложения
         /// </summary>
-        public string FullOutput { get; }
+        public string? FullOutput { get; }
 
-        public RunCommandException(int exitCode, string errorOutput, string fullOutput)
+        public RunCommandException(int exitCode, string? errorOutput, string? fullOutput)
         {
             ExitCode = exitCode;
             ErrorOutput = errorOutput;

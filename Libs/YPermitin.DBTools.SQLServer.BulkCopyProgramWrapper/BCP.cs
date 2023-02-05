@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System.Diagnostics;
+using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper.Exceptions;
 using YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper.Helpers;
@@ -13,6 +15,72 @@ namespace YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper
     public sealed class BCP
     {
         /// <summary>
+        /// Временный каталог библиотеки для хранения служебных данных
+        /// </summary>
+        // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
+        private static readonly string BCPWrapperTempDirectory;
+
+        /// <summary>
+        /// Временный каталог для контроля запущенных процессов BCP
+        /// </summary>
+        private static readonly string BCPProcessControlDirectory;
+
+        static BCP()
+        {
+            BCPWrapperTempDirectory = Path.Combine(Path.GetTempPath(), "BulkCopyProgramWrapper");
+            Directory.CreateDirectory(BCPWrapperTempDirectory);
+            BCPProcessControlDirectory = Path.Combine(BCPWrapperTempDirectory, "ProcessControl");
+            Directory.CreateDirectory(BCPProcessControlDirectory);
+        }
+
+        /// <summary>
+        /// Завершение всех неактивных (зависших) процессов утилиты BCP.exe, которые ранее были запущены через библиотеку.
+        ///
+        /// Список процессов контролируется через промежуточный временный каталог,
+        /// поэтому те процессы BCP.exe, которые были запущены в других местах, не будут затронуты.
+        /// </summary>
+        public static void TerminateStuckBulkCopyProcesses()
+        {
+            var controlProcessInfoItems = Directory.GetFiles(BCPProcessControlDirectory, "*.json");
+            foreach (var controlProcessInfoItem in controlProcessInfoItems)
+            {
+                try
+                {
+                    var controlInfoAsJson = File.ReadAllText(controlProcessInfoItem);
+                    var controlProcessInfo = JsonSerializer.Deserialize<ProcessControlInfo>(controlInfoAsJson);
+                    if (controlProcessInfo != null)
+                    {
+                        var processInfo = Process.GetProcessById(controlProcessInfo.ProcessId);
+
+                        if (processInfo.HasExited)
+                        {
+                            File.Delete(controlProcessInfoItem);
+                        }
+                        else
+                        {
+                            if (processInfo.ProcessName == controlProcessInfo.ProcessName
+                                && processInfo.StartTime == controlProcessInfo.ProcessStartTime)
+                            {
+                                var lastActivityTimeLeft = DateTime.UtcNow - controlProcessInfo.ProcessLastActivity;
+                                if (lastActivityTimeLeft.TotalMilliseconds > ProcessHelper.ProcessActivityWaitMs)
+                                {
+                                    processInfo.Kill(true);
+                                    File.Delete(controlProcessInfoItem);
+                                }
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // TODO Можно продумать реакцию на разные виды исключений.
+                    // При возникновении ошибки удаляем файл с информацией о запущенном процессе.
+                    File.Delete(controlProcessInfoItem);
+                }
+            }
+        }
+
+        /// <summary>
         /// Текущий путь к утилите BCP
         /// </summary>
         private string _bcpUtilityPath;
@@ -25,11 +93,12 @@ namespace YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper
         /// <summary>
         /// Информация о результате выполнения последней операции
         /// </summary>
-        public ExecutionResult LastExecutionResult { get; private set; }
+        public ExecutionResult? LastExecutionResult { get; private set; }
 
         public BCP()
         {
             _bcpUtilityPath = DefaultValues.UtilityPath;
+
             Config = new BCPConfig();
         }
         
@@ -41,7 +110,10 @@ namespace YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper
         {
             try
             {
-                ProcessHelper.RunCommand(_bcpUtilityPath, string.Empty, out _, out _, out _);
+                ProcessHelper.RunCommand(new RunCommandOptions()
+                {
+                    FileName = _bcpUtilityPath
+                }, out _);
 
                 return true;
             }
@@ -56,11 +128,17 @@ namespace YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper
         /// </summary>
         public string Version()
         {
-            ProcessHelper.RunCommand(_bcpUtilityPath, "-v",
-                out string output, out _, out _, true);
-            
+            ProcessHelper.RunCommand(new RunCommandOptions()
+            {
+                FileName = _bcpUtilityPath,
+                Arguments = "-v"
+            }, out RunCommandResult commandResult);
+
             string version;
-            var regexMatches = Regex.Matches(output, @"\d+\.\d+\.\d+\.\d+");
+            var regexMatches = Regex.Matches(
+                commandResult.Output ?? string.Empty, 
+                @"\d+\.\d+\.\d+\.\d+");
+
             if (regexMatches.Count == 1)
             {
                 var regexMatchItem = regexMatches.First();
@@ -104,18 +182,20 @@ namespace YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper
             ((ICommonSettings)Config.BulkSettings).AddCommandLineParameters(bcpArguments);
             ((ICommonSettings)Config.AdditionalSettings).AddCommandLineParameters(bcpArguments);
 
-            ProcessHelper.RunCommand(_bcpUtilityPath, bcpArguments.ToString(),
-                out string output,
-                out string errorOutput,
-                out int exitCode,
-                false,
-                Config.AdditionalSettings.OutputFile);
+            ProcessHelper.RunCommand(
+                new RunCommandOptions()
+                {
+                    FileName = _bcpUtilityPath,
+                    Arguments = bcpArguments.ToString(),
+                    ApplicationLogFile = Config.AdditionalSettings.OutputFile
+                }, 
+                out RunCommandResult commandResult, SetProcessStart, SetProcessFinish, SetAcceptActivityProcess);
 
             LastExecutionResult = new ExecutionResult()
             {
-                Message = output,
-                ErrorMessage = errorOutput,
-                ExitCode = exitCode
+                Message = commandResult.Output ?? string.Empty,
+                ErrorMessage = commandResult.ErrorOutput ?? string.Empty,
+                ExitCode = commandResult.ExitCode
             };
         }
 
@@ -125,7 +205,7 @@ namespace YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper
         /// <returns></returns>
         public bool ErrorOccurred()
         {
-            return !string.IsNullOrEmpty(LastExecutionResult.ErrorMessage) || LastExecutionResult.ExitCode != 0;
+            return !string.IsNullOrEmpty(LastExecutionResult?.ErrorMessage) || LastExecutionResult?.ExitCode != 0;
         }
 
         /// <summary>
@@ -137,9 +217,47 @@ namespace YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper
             if (ErrorOccurred())
             {
                 throw new RunCommandException(
-                    LastExecutionResult.ExitCode,
-                    LastExecutionResult.ErrorMessage,
-                    LastExecutionResult.Message);
+                    LastExecutionResult?.ExitCode ?? -1,
+                    LastExecutionResult?.ErrorMessage,
+                    LastExecutionResult?.Message);
+            }
+        }
+
+        /// <summary>
+        /// Обработка события "При старте процесса"
+        /// </summary>
+        /// <param name="processControlInfo">Информация о процессе для контроля</param>
+        private void SetProcessStart(ProcessControlInfo processControlInfo)
+        {
+            var processControlFileName = $"{processControlInfo}.json";
+            string processControlFileFullPath = Path.Combine(BCPProcessControlDirectory, processControlFileName);
+            string processControlInfoAsJson = JsonSerializer.Serialize(processControlInfo);
+            File.WriteAllText(processControlFileFullPath, processControlInfoAsJson);
+        }
+
+        /// <summary>
+        /// Обработка события "При подтверждении активности"
+        /// </summary>
+        /// <param name="processControlInfo">Информация о процессе для контроля</param>
+        private void SetAcceptActivityProcess(ProcessControlInfo processControlInfo)
+        {
+            var processControlFileName = $"{processControlInfo}.json";
+            string processControlFileFullPath = Path.Combine(BCPProcessControlDirectory, processControlFileName);
+            string processControlInfoAsJson = JsonSerializer.Serialize(processControlInfo);
+            File.WriteAllText(processControlFileFullPath, processControlInfoAsJson);
+        }
+
+        /// <summary>
+        /// Обработка события "При завершении процесса"
+        /// </summary>
+        /// <param name="processControlInfo">Информация о процессе для контроля</param>
+        private void SetProcessFinish(ProcessControlInfo processControlInfo)
+        {
+            var processControlFileName = $"{processControlInfo}.json";
+            string processControlFileFullPath = Path.Combine(BCPProcessControlDirectory, processControlFileName);
+            if (File.Exists(processControlFileFullPath))
+            {
+                File.Delete(processControlFileFullPath);
             }
         }
     }

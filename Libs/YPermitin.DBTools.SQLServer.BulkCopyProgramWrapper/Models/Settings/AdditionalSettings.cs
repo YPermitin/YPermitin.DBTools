@@ -10,19 +10,19 @@ namespace YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper.Models.Settings
         /// <summary>
         /// Указывает имя файла, который получает выходные данные, перенаправленные из командной строки.
         /// </summary>
-        public string OutputFile { get; set; }
+        public string? OutputFile { get; set; }
 
         /// <summary>
         /// Указывает имя файла ответов, содержащего ответы на вопросы командной строки для каждого поля данных, когда
         /// массовое копирование выполняется в интерактивном режиме. Для работы через библиотеку не поддерживается и оставлено для совместимости.
         /// </summary>
-        public string InputFile { get; set; }
+        public string? InputFile { get; set; }
 
         /// <summary>
         /// Задает полный путь к файлу ошибок, используемому для хранения любых строк, которые утилита BCP не может передать из файла в базу данных.
         /// Сообщения об ошибках от команды BCP поступают на клиентский компьютер. Если этот параметр не используется, файл ошибок не создается.
         /// </summary>
-        public string ErrorFile { get; set; }
+        public string? ErrorFile { get; set; }
 
         /// <summary>
         /// Указывает максимальное количество синтаксических ошибок, которые могут возникнуть до отмены операции BCP.
@@ -40,21 +40,21 @@ namespace YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper.Models.Settings
             MaxErrors = DefaultValues.MaxErrors;
         }
 
-        public AdditionalSettings WithOutputFile(string outputFile)
+        public AdditionalSettings WithOutputFile(string? outputFile)
         {
             OutputFile = outputFile;
 
             return this;
         }
 
-        public AdditionalSettings WithErrorFileForImport(string errorFile)
+        public AdditionalSettings WithErrorFileForImport(string? errorFile)
         {
             ErrorFile = errorFile;
 
             return this;
         }
 
-        public AdditionalSettings WithInputFile(string inputFile)
+        public AdditionalSettings WithInputFile(string? inputFile)
         {
             InputFile = inputFile;
 

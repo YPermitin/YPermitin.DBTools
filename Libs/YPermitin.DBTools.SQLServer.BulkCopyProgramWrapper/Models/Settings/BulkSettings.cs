@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper.Enums;
+// ReSharper disable InvalidXmlDocComment
 
 namespace YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper.Models.Settings
 {

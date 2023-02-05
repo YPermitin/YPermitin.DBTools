@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 
 namespace YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper.Models.Settings
 {
@@ -85,7 +81,7 @@ namespace YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper.Models.Settings
         /// Имя базы данных, в которой находится указанная таблица или представление.
         /// Если не указано, это база данных по умолчанию для пользователя.
         /// </summary>
-        public string DatabaseName { get; set; }
+        public string? DatabaseName { get; set; }
 
         /// <summary>
         /// Имя источника данных - data source name (DSN).
@@ -95,7 +91,7 @@ namespace YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper.Models.Settings
         /// Подробнее смотрите в документации: DSN Support in sqlcmd and bcp in Connecting with sqlcmd.
         /// [https://learn.microsoft.com/en-us/sql/connect/odbc/linux-mac/connecting-with-sqlcmd?view=sql-server-ver16]
         /// </summary>
-        public string DataSourceName { get; set; }
+        public string? DataSourceName { get; set; }
 
         #endregion
 
@@ -113,7 +109,7 @@ namespace YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper.Models.Settings
             return this;
         }
 
-        public ConnectionSettings WithDatabaseName(string databaseName)
+        public ConnectionSettings WithDatabaseName(string? databaseName)
         {
             DatabaseName = databaseName;
 
@@ -157,7 +153,7 @@ namespace YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper.Models.Settings
             return this;
         }
 
-        public ConnectionSettings WithDataSourceName(string dataSourceName)
+        public ConnectionSettings WithDataSourceName(string? dataSourceName)
         {
             DataSourceName = dataSourceName;
 
