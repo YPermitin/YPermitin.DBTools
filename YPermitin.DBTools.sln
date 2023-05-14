@@ -6,10 +6,19 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "YPermitin.DBTools.Core", "Libs\YPermitin.DBTools.Core\YPermitin.DBTools.Core.csproj", "{CAF44CC3-9FA8-4C5B-B656-1D5C42EEB182}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libs", "Libs", "{E79FBDED-0EA0-4935-ADCB-9116800E2956}"
+	ProjectSection(SolutionItems) = preProject
+		Libs\Readme.md = Libs\Readme.md
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Apps", "Apps", "{41AB67CD-88F9-4504-BFD7-CFF21B20A418}"
+	ProjectSection(SolutionItems) = preProject
+		Apps\README.md = Apps\README.md
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{C673B5E5-1AFC-44FB-ADFE-AC35D9CE74A3}"
+	ProjectSection(SolutionItems) = preProject
+		Tests\README.md = Tests\README.md
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8BF3FBB3-BA2A-4EB7-8335-09488E20CD5B}"
 	ProjectSection(SolutionItems) = preProject
@@ -56,6 +65,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YPermitin.DBTools.SQLServer
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper.Tests", "Tests\YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper.Tests\YPermitin.DBTools.SQLServer.BulkCopyProgramWrapper.Tests.csproj", "{1FEF52F2-5F94-49CE-BE00-119BEBA02006}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YPermitin.DBTools.SQLServer.Security", "Libs\YPermitin.DBTools.SQLServer.Security\YPermitin.DBTools.SQLServer.Security.csproj", "{555766C8-4818-4A79-9AB0-46166A281683}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -98,6 +109,10 @@ Global
 		{1FEF52F2-5F94-49CE-BE00-119BEBA02006}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1FEF52F2-5F94-49CE-BE00-119BEBA02006}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1FEF52F2-5F94-49CE-BE00-119BEBA02006}.Release|Any CPU.Build.0 = Release|Any CPU
+		{555766C8-4818-4A79-9AB0-46166A281683}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{555766C8-4818-4A79-9AB0-46166A281683}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{555766C8-4818-4A79-9AB0-46166A281683}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{555766C8-4818-4A79-9AB0-46166A281683}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -116,6 +131,7 @@ Global
 		{1248D739-3F9A-4D20-BFDD-495E07F4E38F} = {7404C7CE-5368-4058-8D7E-F2CC9BCFA779}
 		{BB203ACD-27F3-444A-90C2-AC68531EDDD6} = {E79FBDED-0EA0-4935-ADCB-9116800E2956}
 		{1FEF52F2-5F94-49CE-BE00-119BEBA02006} = {C673B5E5-1AFC-44FB-ADFE-AC35D9CE74A3}
+		{555766C8-4818-4A79-9AB0-46166A281683} = {E79FBDED-0EA0-4935-ADCB-9116800E2956}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E5E4A466-BD31-4B30-A483-9BA15C9A211A}
